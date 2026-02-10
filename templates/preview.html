@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Style Preview — {{ preset_name }}</title>
+    <link rel="stylesheet" href="{{ font_import }}">
+    <style>
+        :root {
+            --bg-primary: {{ colors.bg_primary }};
+            --text-primary: {{ colors.text_primary }};
+            --text-secondary: {{ colors.text_secondary }};
+            --accent: {{ colors.accent }};
+            --font-display: '{{ fonts.display.family }}', sans-serif;
+            --font-body: '{{ fonts.body.family }}', sans-serif;
+            --title-size: clamp(2rem, 6vw, 5rem);
+            --subtitle-size: clamp(0.875rem, 2vw, 1.25rem);
+            --body-size: clamp(0.75rem, 1.5vw, 1.125rem);
+            --small-size: clamp(0.65rem, 1vw, 0.875rem);
+            --slide-padding: clamp(1.5rem, 4vw, 4rem);
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--slide-padding);
+        }
+
+        .preview-label {
+            font-family: var(--font-body);
+            font-size: var(--small-size);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            opacity: 0;
+            animation: fadeUp 0.6s var(--ease-out-expo) 0.2s forwards;
+        }
+
+        h1 {
+            font-family: var(--font-display);
+            font-size: var(--title-size);
+            line-height: 1.1;
+            margin-bottom: 0.5em;
+            opacity: 0;
+            animation: fadeUp 0.6s var(--ease-out-expo) 0.4s forwards;
+        }
+
+        .subtitle {
+            font-size: var(--subtitle-size);
+            color: var(--text-secondary);
+            opacity: 0;
+            animation: fadeUp 0.6s var(--ease-out-expo) 0.6s forwards;
+        }
+
+        .accent-bar {
+            width: 60px;
+            height: 3px;
+            background: var(--accent);
+            margin: 1.5rem 0;
+            opacity: 0;
+            animation: fadeUp 0.6s var(--ease-out-expo) 0.8s forwards;
+        }
+
+        .palette {
+            display: flex;
+            gap: 8px;
+            margin-top: 1.5rem;
+            opacity: 0;
+            animation: fadeUp 0.6s var(--ease-out-expo) 1s forwards;
+        }
+
+        .swatch {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        {{ extra_css }}
+    </style>
+</head>
+<body>
+    <div class="preview-label">{{ preset_name }}</div>
+    <h1>{{ preview_title }}</h1>
+    <div class="accent-bar"></div>
+    <p class="subtitle">{{ preview_subtitle }}</p>
+    <div class="palette">
+        {{ color_swatches }}
+    </div>
+</body>
+</html>

@@ -1,0 +1,35 @@
+{
+  "name": "creative_voltage",
+  "display_name": "Creative Voltage",
+  "category": "dark",
+  "vibe": "Bold, creative, energetic, retro-modern",
+  "description": "Split panels — electric blue left, dark right. Script accents.",
+  "fonts": {
+    "display": {
+      "family": "Syne",
+      "weights": [700, 800],
+      "source": "google"
+    },
+    "body": {
+      "family": "Space Mono",
+      "weights": [400, 700],
+      "source": "google"
+    }
+  },
+  "colors": {
+    "bg_primary": "#0066ff",
+    "bg_dark": "#1a1a2e",
+    "text_primary": "#ffffff",
+    "text_secondary": "#aaaacc",
+    "accent": "#d4ff00",
+    "accent_glow": "rgba(212, 255, 0, 0.3)"
+  },
+  "signature_elements": [
+    "Electric blue + neon yellow contrast",
+    "Halftone texture patterns",
+    "Neon badges/callouts",
+    "Script typography for creative flair"
+  ],
+  "font_import": "https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Mono:wght@400;700&display=swap",
+  "extra_css": ".split-layout { display: grid; grid-template-columns: 1fr 1fr; height: 100%; } .split-left { background: var(--bg-primary); } .split-right { background: var(--bg-dark); } .neon-badge { display: inline-block; background: var(--accent); color: #000; padding: 0.25em 0.75em; border-radius: 4px; font-weight: 700; font-size: var(--small-size); text-transform: uppercase; }"
+}

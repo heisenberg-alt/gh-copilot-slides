@@ -1,0 +1,36 @@
+{
+  "name": "bold_signal",
+  "display_name": "Bold Signal",
+  "category": "dark",
+  "vibe": "Confident, bold, modern, high-impact",
+  "description": "Vibrant card on dark gradient. Number top-left, navigation top-right, title bottom-left.",
+  "fonts": {
+    "display": {
+      "family": "Archivo Black",
+      "weights": [900],
+      "source": "google"
+    },
+    "body": {
+      "family": "Space Grotesk",
+      "weights": [400, 500],
+      "source": "google"
+    }
+  },
+  "colors": {
+    "bg_primary": "#1a1a1a",
+    "bg_gradient": "linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)",
+    "card_bg": "#FF5722",
+    "text_primary": "#ffffff",
+    "text_secondary": "#999999",
+    "text_on_card": "#1a1a1a",
+    "accent": "#FF5722"
+  },
+  "signature_elements": [
+    "Bold colored card as focal point (orange, coral, or vibrant accent)",
+    "Large section numbers (01, 02, etc.)",
+    "Navigation breadcrumbs with active/inactive opacity states",
+    "Grid-based layout for precise alignment"
+  ],
+  "font_import": "https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500&display=swap",
+  "extra_css": ".slide-number { font-family: var(--font-display); font-size: clamp(3rem, 8vw, 8rem); opacity: 0.15; position: absolute; top: var(--slide-padding); left: var(--slide-padding); } .accent-card { background: var(--card-bg); color: var(--text-on-card); border-radius: 16px; padding: clamp(1.5rem, 3vw, 3rem); }"
+}

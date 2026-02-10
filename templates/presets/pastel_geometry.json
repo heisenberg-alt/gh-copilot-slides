@@ -1,0 +1,39 @@
+{
+  "name": "pastel_geometry",
+  "display_name": "Pastel Geometry",
+  "category": "light",
+  "vibe": "Friendly, organized, modern, approachable",
+  "description": "White card on pastel background. Vertical pills on right edge.",
+  "fonts": {
+    "display": {
+      "family": "Plus Jakarta Sans",
+      "weights": [700, 800],
+      "source": "google"
+    },
+    "body": {
+      "family": "Plus Jakarta Sans",
+      "weights": [400, 500],
+      "source": "google"
+    }
+  },
+  "colors": {
+    "bg_primary": "#c8d9e6",
+    "bg_card": "#faf9f7",
+    "text_primary": "#2d2d2d",
+    "text_secondary": "#666666",
+    "pill_pink": "#f0b4d4",
+    "pill_mint": "#a8d4c4",
+    "pill_sage": "#5a7c6a",
+    "pill_lavender": "#9b8dc4",
+    "pill_violet": "#7c6aad",
+    "accent": "#7c6aad"
+  },
+  "signature_elements": [
+    "Rounded card with soft shadow",
+    "Vertical pills on right edge with varying heights",
+    "Consistent pill width, heights: short → medium → tall → medium → short",
+    "Download/action icon in corner"
+  ],
+  "font_import": "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap",
+  "extra_css": ".content-card { background: var(--bg-card); border-radius: 16px; box-shadow: 0 4px 30px rgba(0,0,0,0.06); padding: clamp(2rem, 4vw, 4rem); position: relative; } .pills-container { position: absolute; right: -12px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 6px; } .pill { width: 8px; border-radius: 4px; } .pill-sm { height: 24px; } .pill-md { height: 40px; } .pill-lg { height: 56px; }"
+}

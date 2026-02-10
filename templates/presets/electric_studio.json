@@ -1,0 +1,35 @@
+{
+  "name": "electric_studio",
+  "display_name": "Electric Studio",
+  "category": "dark",
+  "vibe": "Sleek, minimal, premium, design-studio",
+  "description": "Dark minimal with neon accents. Clean typography with animated reveals.",
+  "fonts": {
+    "display": {
+      "family": "Manrope",
+      "weights": [700, 800],
+      "source": "google"
+    },
+    "body": {
+      "family": "Manrope",
+      "weights": [400, 500],
+      "source": "google"
+    }
+  },
+  "colors": {
+    "bg_primary": "#0a0a0a",
+    "bg_secondary": "#141414",
+    "text_primary": "#ffffff",
+    "text_secondary": "#666666",
+    "accent": "#00ff88",
+    "accent_glow": "rgba(0, 255, 136, 0.2)"
+  },
+  "signature_elements": [
+    "Neon green accent on dark black",
+    "Thin horizontal dividers",
+    "Monospace labels and tags",
+    "Minimal, lots of whitespace"
+  ],
+  "font_import": "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap",
+  "extra_css": ".tag { font-family: monospace; font-size: var(--small-size); text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent); } .divider { width: 60px; height: 2px; background: var(--accent); margin: 1rem 0; }"
+}

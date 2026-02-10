@@ -1,0 +1,38 @@
+{
+  "name": "neon_cyber",
+  "display_name": "Neon Cyber",
+  "category": "specialty",
+  "vibe": "Futuristic, techy, neon, cyberpunk",
+  "description": "Deep dark with neon glows. Particle effects and scan lines.",
+  "fonts": {
+    "display": {
+      "family": "Clash Display",
+      "weights": [600, 700],
+      "source": "fontshare"
+    },
+    "body": {
+      "family": "Satoshi",
+      "weights": [400, 500],
+      "source": "fontshare"
+    }
+  },
+  "colors": {
+    "bg_primary": "#0a0f1c",
+    "bg_secondary": "#111827",
+    "text_primary": "#ffffff",
+    "text_secondary": "#9ca3af",
+    "accent": "#00ffcc",
+    "accent_glow": "rgba(0, 255, 204, 0.3)",
+    "accent_secondary": "#ff00ff",
+    "accent_secondary_glow": "rgba(255, 0, 255, 0.2)"
+  },
+  "signature_elements": [
+    "Neon glow effects on text and borders",
+    "Particle system canvas background",
+    "Scan-line overlay texture",
+    "Custom cursor with trail effect",
+    "Gradient borders on cards"
+  ],
+  "font_import": "https://api.fontshare.com/v2/css?f[]=clash-display@600,700&f[]=satoshi@400,500&display=swap",
+  "extra_css": ".neon-text { text-shadow: 0 0 10px var(--accent-glow), 0 0 40px var(--accent-glow); } .neon-border { border: 1px solid var(--accent); box-shadow: 0 0 15px var(--accent-glow), inset 0 0 15px var(--accent-glow); } .scanlines::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px); pointer-events: none; z-index: 1; } .gradient-border { background: linear-gradient(var(--bg-primary), var(--bg-primary)) padding-box, linear-gradient(135deg, var(--accent), var(--accent-secondary)) border-box; border: 2px solid transparent; border-radius: 12px; }"
+}

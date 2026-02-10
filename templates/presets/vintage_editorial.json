@@ -1,0 +1,35 @@
+{
+  "name": "vintage_editorial",
+  "display_name": "Vintage Editorial",
+  "category": "light",
+  "vibe": "Witty, confident, editorial, personality-driven",
+  "description": "Centered content on cream. Abstract geometric shapes as accent.",
+  "fonts": {
+    "display": {
+      "family": "Fraunces",
+      "weights": [700, 900],
+      "source": "google"
+    },
+    "body": {
+      "family": "Work Sans",
+      "weights": [400, 500],
+      "source": "google"
+    }
+  },
+  "colors": {
+    "bg_primary": "#f5f3ee",
+    "bg_secondary": "#ebe8e0",
+    "text_primary": "#1a1a1a",
+    "text_secondary": "#555555",
+    "accent": "#e8d4c0",
+    "accent_dark": "#c4a882"
+  },
+  "signature_elements": [
+    "Abstract geometric shapes (circle outline + line + dot)",
+    "Bold bordered CTA boxes",
+    "Witty, conversational copy style",
+    "No illustrations — only geometric CSS shapes"
+  ],
+  "font_import": "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Work+Sans:wght@400;500&display=swap",
+  "extra_css": ".geo-circle { width: 120px; height: 120px; border: 2px solid var(--accent-dark); border-radius: 50%; position: absolute; } .geo-line { width: 80px; height: 2px; background: var(--accent-dark); position: absolute; } .geo-dot { width: 8px; height: 8px; background: var(--accent-dark); border-radius: 50%; position: absolute; } .cta-box { border: 2px solid var(--text-primary); padding: 0.75em 1.5em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; display: inline-block; }"
+}

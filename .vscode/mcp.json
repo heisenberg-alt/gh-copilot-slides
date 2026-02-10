@@ -1,0 +1,10 @@
+{
+    "mcpServers": {
+        "slide-builder": {
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": ["-m", "slide_mcp.server"],
+            "cwd": "${workspaceFolder}",
+            "env": {}
+        }
+    }
+}

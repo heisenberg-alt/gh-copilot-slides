@@ -1,0 +1,36 @@
+{
+  "name": "split_pastel",
+  "display_name": "Split Pastel",
+  "category": "light",
+  "vibe": "Clean, modern, playful, balanced",
+  "description": "Split layout with pastel backgrounds. Rounded shapes and clean type.",
+  "fonts": {
+    "display": {
+      "family": "Outfit",
+      "weights": [600, 700],
+      "source": "google"
+    },
+    "body": {
+      "family": "Outfit",
+      "weights": [400, 500],
+      "source": "google"
+    }
+  },
+  "colors": {
+    "bg_primary": "#fdf6f0",
+    "bg_left": "#e8f4f8",
+    "bg_right": "#fdf6f0",
+    "text_primary": "#1a1a2e",
+    "text_secondary": "#555566",
+    "accent": "#ff6b6b",
+    "accent_secondary": "#4ecdc4"
+  },
+  "signature_elements": [
+    "Split-screen layout with contrasting pastels",
+    "Rounded pill shapes and soft corners",
+    "Playful color combinations",
+    "Clean whitespace-heavy design"
+  ],
+  "font_import": "https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap",
+  "extra_css": ".split-pastel { display: grid; grid-template-columns: 1fr 1fr; height: 100%; } .pastel-left { background: var(--bg-left); display: flex; align-items: center; justify-content: center; padding: var(--slide-padding); } .pastel-right { background: var(--bg-right); display: flex; align-items: center; justify-content: center; padding: var(--slide-padding); } .pill-button { display: inline-block; padding: 0.5em 1.5em; border-radius: 999px; background: var(--accent); color: white; font-weight: 600; }"
+}

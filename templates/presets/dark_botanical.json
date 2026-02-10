@@ -1,0 +1,37 @@
+{
+  "name": "dark_botanical",
+  "display_name": "Dark Botanical",
+  "category": "dark",
+  "vibe": "Elegant, sophisticated, artistic, premium",
+  "description": "Centered content on dark. Abstract soft shapes in corner.",
+  "fonts": {
+    "display": {
+      "family": "Cormorant",
+      "weights": [400, 600],
+      "source": "google"
+    },
+    "body": {
+      "family": "IBM Plex Sans",
+      "weights": [300, 400],
+      "source": "google"
+    }
+  },
+  "colors": {
+    "bg_primary": "#0f0f0f",
+    "bg_secondary": "#1a1a1a",
+    "text_primary": "#e8e4df",
+    "text_secondary": "#9a9590",
+    "accent": "#d4a574",
+    "accent_pink": "#e8b4b8",
+    "accent_gold": "#c9b896"
+  },
+  "signature_elements": [
+    "Abstract soft gradient circles (blurred, overlapping)",
+    "Warm color accents (pink, gold, terracotta)",
+    "Thin vertical accent lines",
+    "Italic signature typography",
+    "No illustrations — only abstract CSS shapes"
+  ],
+  "font_import": "https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Sans:wght@300;400&display=swap",
+  "extra_css": ".accent-circle { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.4; z-index: 0; } .circle-warm { background: var(--accent); width: 300px; height: 300px; top: -100px; right: -50px; } .circle-pink { background: #e8b4b8; width: 200px; height: 200px; bottom: -50px; left: -30px; } .accent-line { width: 1px; height: 60px; background: var(--accent); margin: 1.5rem auto; }"
+}

@@ -1,0 +1,37 @@
+{
+  "name": "terminal_green",
+  "display_name": "Terminal Green",
+  "category": "specialty",
+  "vibe": "Developer-focused, hacker, retro terminal",
+  "description": "CRT-style green-on-black with monospace typography throughout.",
+  "fonts": {
+    "display": {
+      "family": "JetBrains Mono",
+      "weights": [700],
+      "source": "google"
+    },
+    "body": {
+      "family": "JetBrains Mono",
+      "weights": [400],
+      "source": "google"
+    }
+  },
+  "colors": {
+    "bg_primary": "#0a0a0a",
+    "bg_secondary": "#111111",
+    "text_primary": "#00ff41",
+    "text_secondary": "#008f11",
+    "accent": "#00ff41",
+    "accent_dim": "#005500",
+    "cursor": "#00ff41"
+  },
+  "signature_elements": [
+    "CRT screen glow effect",
+    "Blinking cursor animation",
+    "Monospace everything",
+    "Terminal prompt styling ($ >)",
+    "Screen flicker subtle animation"
+  ],
+  "font_import": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap",
+  "extra_css": ".terminal-glow { text-shadow: 0 0 5px var(--accent), 0 0 10px rgba(0,255,65,0.3); } .crt-effect { position: relative; } .crt-effect::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(0,255,65,0.03) 1px, rgba(0,255,65,0.03) 2px); pointer-events: none; } .prompt::before { content: '$ '; color: var(--text-secondary); } .blink { animation: blink 1s step-end infinite; } @keyframes blink { 50% { opacity: 0; } } .terminal-box { border: 1px solid var(--accent-dim); padding: 1rem; font-family: var(--font-display); }"
+}

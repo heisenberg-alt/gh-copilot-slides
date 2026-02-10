@@ -1,0 +1,37 @@
+# Go
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+vendor/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Output
+output/
+*.html
+!templates/**/*.html
+
+# OS
+.DS_Store
+Thumbs.db

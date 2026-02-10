@@ -1,0 +1,39 @@
+{
+  "name": "notebook_tabs",
+  "display_name": "Notebook Tabs",
+  "category": "light",
+  "vibe": "Editorial, structured, paper-like, professional",
+  "description": "Paper-like cards with colorful section tabs. Editorial feel.",
+  "fonts": {
+    "display": {
+      "family": "Bodoni Moda",
+      "weights": [600, 700],
+      "source": "google"
+    },
+    "body": {
+      "family": "DM Sans",
+      "weights": [400, 500],
+      "source": "google"
+    }
+  },
+  "colors": {
+    "bg_primary": "#f4f1ec",
+    "bg_card": "#ffffff",
+    "text_primary": "#1a1a1a",
+    "text_secondary": "#666666",
+    "tab_red": "#e74c3c",
+    "tab_blue": "#3498db",
+    "tab_green": "#27ae60",
+    "tab_yellow": "#f39c12",
+    "accent": "#e74c3c"
+  },
+  "signature_elements": [
+    "Paper-textured background",
+    "Colored section tabs on the side",
+    "Serif + sans-serif font pairing",
+    "Subtle box shadows for depth",
+    "Clean editorial grid layout"
+  ],
+  "font_import": "https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@600;700&family=DM+Sans:wght@400;500&display=swap",
+  "extra_css": ".paper-card { background: var(--bg-card); border-radius: 8px; box-shadow: 0 2px 20px rgba(0,0,0,0.08); padding: clamp(1.5rem, 3vw, 3rem); position: relative; } .section-tab { position: absolute; left: -4px; top: 20%; width: 4px; height: 40px; border-radius: 0 4px 4px 0; } .tab-red { background: #e74c3c; } .tab-blue { background: #3498db; } .tab-green { background: #27ae60; }"
+}
