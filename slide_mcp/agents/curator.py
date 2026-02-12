@@ -12,11 +12,9 @@ import logging
 from typing import Any
 
 from .base import Agent, AgentResult, ConversationContext
+from ..utils import VALID_SLIDE_TYPES, validate_slides
 
 logger = logging.getLogger("slide-builder.agents.curator")
-
-# Valid slide types matching the generator schema
-VALID_SLIDE_TYPES = {"title", "content", "feature_grid", "code", "quote", "image", "closing"}
 
 
 class CuratorAgent(Agent):
@@ -38,7 +36,7 @@ class CuratorAgent(Agent):
         try:
             slides = self._curate_slides(context, research)
             # Validate and fix slide structure
-            slides = self._validate_slides(slides)
+            slides = validate_slides(slides)
             title = self._determine_title(context, research, slides)
         except Exception as e:
             return AgentResult(
@@ -177,43 +175,6 @@ Generate exactly {context.slide_count} slides with a compelling narrative arc.""
                 except json.JSONDecodeError:
                     pass
             raise ValueError(f"Could not parse slides from response: {raw[:300]}...")
-
-    def _validate_slides(self, slides: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        """Validate and fix slide structure."""
-        if not slides:
-            return slides
-
-        for slide in slides:
-            # Ensure valid type
-            if slide.get("type") not in VALID_SLIDE_TYPES:
-                slide["type"] = "content"
-
-            # Ensure title exists
-            if not slide.get("title"):
-                slide["title"] = "Untitled Slide"
-
-            # Limit bullets
-            if slide.get("bullets"):
-                slide["bullets"] = slide["bullets"][:6]
-
-            # Limit cards
-            if slide.get("cards"):
-                slide["cards"] = slide["cards"][:6]
-                for card in slide["cards"]:
-                    if "title" not in card:
-                        card["title"] = ""
-                    if "description" not in card:
-                        card["description"] = ""
-
-        # Ensure first slide is title
-        if slides[0].get("type") != "title":
-            slides[0]["type"] = "title"
-
-        # Ensure last slide is closing
-        if slides[-1].get("type") != "closing":
-            slides[-1]["type"] = "closing"
-
-        return slides
 
     def _determine_title(
         self,

@@ -6,27 +6,29 @@ readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
 dependencies = [
-    "mcp[cli]>=1.2.0",
-    "python-pptx>=1.0.2",
-    "jinja2>=3.1.4",
-    "pydantic>=2.10.0",
-    "httpx>=0.27.0",
-    "beautifulsoup4>=4.12.0",
-    "trafilatura>=1.12.0",
-    "duckduckgo-search>=6.0.0",
+    "mcp[cli]>=1.2.0,<2",
+    "python-pptx>=1.0.2,<2",
+    "jinja2>=3.1.4,<4",
+    "httpx>=0.27.0,<1",
+    "beautifulsoup4>=4.12.0,<5",
+    "trafilatura>=1.12.0,<2",
+    "duckduckgo-search>=6.0.0,<8",
 ]
 
 [project.optional-dependencies]
 research = [
-    "pymupdf>=1.24.0",
-    "python-docx>=1.1.0",
+    "pymupdf>=1.24.0,<2",
+    "python-docx>=1.1.0,<2",
 ]
 pdf = [
-    "playwright>=1.45.0",
+    "playwright>=1.45.0,<2",
+]
+test = [
+    "pytest>=8.0,<9",
+    "pytest-cov>=5.0,<6",
 ]
 all = [
-    "slide-builder-mcp[research,pdf]",
-    "openai>=1.30.0",
+    "slide-builder-mcp[research,pdf,test]",
 ]
 
 [project.scripts]
@@ -45,3 +47,7 @@ target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "W"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"

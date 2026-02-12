@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields as dataclass_fields
 from typing import Any
 
 from ..llm import LLMClient
@@ -62,6 +62,9 @@ class ConversationContext:
     # Edit history
     edit_history: list[dict[str, Any]] = field(default_factory=list)
 
+    # Editor instruction (set before calling EditorAgent.run)
+    edit_instruction: str = ""
+
     def to_dict(self) -> dict[str, Any]:
         """Serialize context to a dict (for session persistence)."""
         return {
@@ -84,14 +87,16 @@ class ConversationContext:
             "output_formats": self.output_formats,
             "output_paths": self.output_paths,
             "edit_history": self.edit_history,
+            "edit_instruction": self.edit_instruction,
         }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> ConversationContext:
-        """Deserialize context from a dict."""
+        """Deserialize context from a dict, only setting known dataclass fields."""
         ctx = cls()
+        allowed = {f.name for f in dataclass_fields(cls)}
         for key, value in data.items():
-            if hasattr(ctx, key):
+            if key in allowed:
                 setattr(ctx, key, value)
         return ctx
 

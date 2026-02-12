@@ -5,6 +5,7 @@ package generator
 
 import (
 	"fmt"
+	"html"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,15 +15,15 @@ import (
 
 // Slide represents a single slide's content.
 type Slide struct {
-	Type        string            `json:"type"` // title, content, feature_grid, code, quote, image, closing
-	Title       string            `json:"title"`
-	Subtitle    string            `json:"subtitle,omitempty"`
-	Bullets     []string          `json:"bullets,omitempty"`
-	Code        string            `json:"code,omitempty"`
-	Quote       string            `json:"quote,omitempty"`
-	Attribution string            `json:"attribution,omitempty"`
-	Cards       []Card            `json:"cards,omitempty"`
-	ImageSrc    string            `json:"image_src,omitempty"`
+	Type        string   `json:"type"` // title, content, feature_grid, code, quote, image, closing
+	Title       string   `json:"title"`
+	Subtitle    string   `json:"subtitle,omitempty"`
+	Bullets     []string `json:"bullets,omitempty"`
+	Code        string   `json:"code,omitempty"`
+	Quote       string   `json:"quote,omitempty"`
+	Attribution string   `json:"attribution,omitempty"`
+	Cards       []Card   `json:"cards,omitempty"`
+	ImageSrc    string   `json:"image_src,omitempty"`
 }
 
 // Card is a feature card in a grid slide.
@@ -60,12 +61,13 @@ func templatesDir() (string, error) {
 }
 
 // buildSlideHTML renders a single slide to HTML.
+// All user-provided content is HTML-escaped to prevent XSS.
 func buildSlideHTML(s Slide) string {
 	switch s.Type {
 	case "title":
 		sub := ""
 		if s.Subtitle != "" {
-			sub = fmt.Sprintf(`<p class="reveal subtitle">%s</p>`, s.Subtitle)
+			sub = fmt.Sprintf(`<p class="reveal subtitle">%s</p>`, html.EscapeString(s.Subtitle))
 		}
 		return fmt.Sprintf(`
     <section class="slide title-slide">
@@ -73,12 +75,12 @@ func buildSlideHTML(s Slide) string {
             <h1 class="reveal">%s</h1>
             %s
         </div>
-    </section>`, s.Title, sub)
+    </section>`, html.EscapeString(s.Title), sub)
 
 	case "quote":
 		attr := ""
 		if s.Attribution != "" {
-			attr = fmt.Sprintf(`<p class="reveal" style="margin-top: 1rem; color: var(--text-secondary);">— %s</p>`, s.Attribution)
+			attr = fmt.Sprintf(`<p class="reveal" style="margin-top: 1rem; color: var(--text-secondary);">— %s</p>`, html.EscapeString(s.Attribution))
 		}
 		return fmt.Sprintf(`
     <section class="slide quote-slide">
@@ -88,7 +90,7 @@ func buildSlideHTML(s Slide) string {
             </blockquote>
             %s
         </div>
-    </section>`, s.Quote, attr)
+    </section>`, html.EscapeString(s.Quote), attr)
 
 	case "code":
 		return fmt.Sprintf(`
@@ -97,7 +99,7 @@ func buildSlideHTML(s Slide) string {
             <h2 class="reveal">%s</h2>
             <pre class="reveal" style="background: rgba(0,0,0,0.3); padding: clamp(1rem, 2vw, 2rem); border-radius: 8px; overflow: hidden; font-family: 'JetBrains Mono', monospace; font-size: var(--small-size); line-height: 1.6; margin-top: var(--content-gap);"><code>%s</code></pre>
         </div>
-    </section>`, s.Title, s.Code)
+    </section>`, html.EscapeString(s.Title), html.EscapeString(s.Code))
 
 	case "feature_grid":
 		var cards strings.Builder
@@ -107,14 +109,14 @@ func buildSlideHTML(s Slide) string {
 			}
 			icon := ""
 			if c.Icon != "" {
-				icon = fmt.Sprintf(`<div style="font-size: 1.5em; margin-bottom: 0.5rem;">%s</div>`, c.Icon)
+				icon = fmt.Sprintf(`<div style="font-size: 1.5em; margin-bottom: 0.5rem;">%s</div>`, html.EscapeString(c.Icon))
 			}
 			cards.WriteString(fmt.Sprintf(`
                 <div class="card reveal" style="background: rgba(255,255,255,0.05); padding: clamp(1rem, 2vw, 1.5rem); border-radius: 12px;">
                     %s
                     <h3 style="font-size: var(--body-size); font-weight: 600; margin-bottom: 0.5rem;">%s</h3>
                     <p style="font-size: var(--small-size); color: var(--text-secondary);">%s</p>
-                </div>`, icon, c.Title, c.Description))
+                </div>`, icon, html.EscapeString(c.Title), html.EscapeString(c.Description)))
 		}
 		return fmt.Sprintf(`
     <section class="slide feature_grid-slide">
@@ -123,7 +125,7 @@ func buildSlideHTML(s Slide) string {
             <div class="grid" style="margin-top: var(--content-gap);">%s
             </div>
         </div>
-    </section>`, s.Title, cards.String())
+    </section>`, html.EscapeString(s.Title), cards.String())
 
 	case "image":
 		return fmt.Sprintf(`
@@ -132,12 +134,12 @@ func buildSlideHTML(s Slide) string {
             <h2 class="reveal">%s</h2>
             <img class="reveal" src="%s" alt="%s" style="margin-top: var(--content-gap); border-radius: 8px;">
         </div>
-    </section>`, s.Title, s.ImageSrc, s.Title)
+    </section>`, html.EscapeString(s.Title), html.EscapeString(s.ImageSrc), html.EscapeString(s.Title))
 
 	case "closing":
 		sub := ""
 		if s.Subtitle != "" {
-			sub = fmt.Sprintf(`<p class="reveal subtitle" style="margin-top: var(--content-gap);">%s</p>`, s.Subtitle)
+			sub = fmt.Sprintf(`<p class="reveal subtitle" style="margin-top: var(--content-gap);">%s</p>`, html.EscapeString(s.Subtitle))
 		}
 		return fmt.Sprintf(`
     <section class="slide closing-slide">
@@ -145,7 +147,7 @@ func buildSlideHTML(s Slide) string {
             <h1 class="reveal">%s</h1>
             %s
         </div>
-    </section>`, s.Title, sub)
+    </section>`, html.EscapeString(s.Title), sub)
 
 	default: // content
 		var body strings.Builder
@@ -157,20 +159,20 @@ func buildSlideHTML(s Slide) string {
 					break
 				}
 				body.WriteString(fmt.Sprintf(`
-                <li class="reveal">%s</li>`, b))
+                <li class="reveal">%s</li>`, html.EscapeString(b)))
 			}
 			body.WriteString(`
             </ul>`)
 		} else if s.Subtitle != "" {
 			body.WriteString(fmt.Sprintf(`
-            <p class="reveal" style="margin-top: var(--content-gap); color: var(--text-secondary);">%s</p>`, s.Subtitle))
+            <p class="reveal" style="margin-top: var(--content-gap); color: var(--text-secondary);">%s</p>`, html.EscapeString(s.Subtitle)))
 		}
 		return fmt.Sprintf(`
     <section class="slide content-slide">
         <div class="slide-content">
             <h2 class="reveal">%s</h2>%s
         </div>
-    </section>`, s.Title, body.String())
+    </section>`, html.EscapeString(s.Title), body.String())
 	}
 }
 
@@ -200,10 +202,10 @@ func GeneratePresentation(title string, slides []Slide, styleName string, output
 
 	// Replace template variables
 	replacements := map[string]string{
-		"{{ title }}":               title,
-		"{{ font_import }}":         preset.FontImport,
-		"{{ extra_css }}":           preset.ExtraCSS,
-		"{{ slides_html }}":         allSlides.String(),
+		"{{ title }}":                title,
+		"{{ font_import }}":          preset.FontImport,
+		"{{ extra_css }}":            preset.ExtraCSS,
+		"{{ slides_html }}":          allSlides.String(),
 		"{{ fonts.display.family }}": preset.Fonts["display"].Family,
 		"{{ fonts.body.family }}":    preset.Fonts["body"].Family,
 	}

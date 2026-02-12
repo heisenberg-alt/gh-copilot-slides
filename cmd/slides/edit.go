@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -62,14 +63,35 @@ func runEdit(cmd *cobra.Command, args []string) error {
 func editDirect(cmd *cobra.Command) error {
 	sessionSelector := getSessionSelector()
 
-	pyScript := fmt.Sprintf(`
+	params := map[string]any{
+		"session_selector": sessionSelector,
+		"instruction":      editInstruction,
+	}
+	paramsFile, err := writeTempJSON(params)
+	if err != nil {
+		return fmt.Errorf("writing params: %w", err)
+	}
+	defer os.Remove(paramsFile)
+
+	pyScript := `
 import sys, os, json
-sys.path.insert(0, os.path.dirname(os.path.abspath(%q)))
+
+params = json.load(open(sys.argv[1]))
+sys.path.insert(0, os.path.dirname(os.path.abspath(sys.argv[1])))
 from slide_mcp.agents.orchestrator import Orchestrator
 
 orch = Orchestrator()
-%s
-session = orch.edit_presentation(session_id, %q)
+session_selector = params.get("session_selector", "")
+if session_selector:
+    session_id = session_selector
+else:
+    sessions = orch.list_sessions()
+    if not sessions:
+        print("No sessions found.")
+        sys.exit(1)
+    session_id = sessions[0]['id']
+
+session = orch.edit_presentation(session_id, params["instruction"])
 print("Session: " + session.id)
 print("Slides: " + str(len(session.slides)))
 if session.edit_history:
@@ -77,9 +99,9 @@ if session.edit_history:
 for fmt, path in session.output_paths.items():
     if not path.startswith("ERROR"):
         print(f"  {fmt.upper()}: {path}")
-`, ".", sessionSelector, editInstruction)
+`
 
-	pyCmd := exec.Command("python3", "-c", pyScript)
+	pyCmd := exec.Command("python3", "-c", pyScript, paramsFile)
 	pyCmd.Stdout = cmd.OutOrStdout()
 	pyCmd.Stderr = cmd.ErrOrStderr()
 
@@ -91,12 +113,19 @@ for fmt, path in session.output_paths.items():
 
 func editInteractive(cmd *cobra.Command) error {
 	fmt.Println("\n  Slide Builder — Edit Mode")
-	fmt.Println("  Commands: type edit instruction, 'style <name>', 'export <formats>', or 'done'\n")
+	fmt.Println("  Commands: type edit instruction, 'style <name>', 'export <formats>', or 'done'")
 
 	// Show current session info
-	listPyScript := fmt.Sprintf(`
-import sys, os
-sys.path.insert(0, os.path.dirname(os.path.abspath(%q)))
+	listParams := map[string]any{"action": "list"}
+	listFile, err := writeTempJSON(listParams)
+	if err != nil {
+		fmt.Printf("  Error: %v\n", err)
+	} else {
+		listPyScript := `
+import sys, os, json
+
+json.load(open(sys.argv[1]))  # validate
+sys.path.insert(0, os.path.dirname(os.path.abspath(sys.argv[1])))
 from slide_mcp.agents.orchestrator import Orchestrator
 
 orch = Orchestrator()
@@ -106,12 +135,13 @@ if not sessions:
 else:
     s = sessions[0]
     print(f"Session: {s['id']} — {s.get('topic', 'Untitled')} ({s.get('slides', '0')} slides)")
-`, ".")
-
-	listCmd := exec.Command("python3", "-c", listPyScript)
-	listCmd.Stdout = cmd.OutOrStdout()
-	listCmd.Stderr = cmd.ErrOrStderr()
-	listCmd.Run()
+`
+		listCmd := exec.Command("python3", "-c", listPyScript, listFile)
+		listCmd.Stdout = cmd.OutOrStdout()
+		listCmd.Stderr = cmd.ErrOrStderr()
+		listCmd.Run()
+		os.Remove(listFile)
+	}
 
 	// Edit loop
 	for {
@@ -163,21 +193,42 @@ else:
 func changeStyle(cmd *cobra.Command) error {
 	sessionSelector := getSessionSelector()
 
-	pyScript := fmt.Sprintf(`
-import sys, os
-sys.path.insert(0, os.path.dirname(os.path.abspath(%q)))
+	params := map[string]any{
+		"session_selector": sessionSelector,
+		"style_name":       editStyle,
+	}
+	paramsFile, err := writeTempJSON(params)
+	if err != nil {
+		return fmt.Errorf("writing params: %w", err)
+	}
+	defer os.Remove(paramsFile)
+
+	pyScript := `
+import sys, os, json
+
+params = json.load(open(sys.argv[1]))
+sys.path.insert(0, os.path.dirname(os.path.abspath(sys.argv[1])))
 from slide_mcp.agents.orchestrator import Orchestrator
 
 orch = Orchestrator()
-%s
-session = orch.change_style(session_id, style_name=%q)
+session_selector = params.get("session_selector", "")
+if session_selector:
+    session_id = session_selector
+else:
+    sessions = orch.list_sessions()
+    if not sessions:
+        print("No sessions found.")
+        sys.exit(1)
+    session_id = sessions[0]['id']
+
+session = orch.change_style(session_id, style_name=params["style_name"])
 print(f"Style changed to: {session.style_name}")
 for fmt, path in session.output_paths.items():
     if not path.startswith("ERROR"):
         print(f"  {fmt.upper()}: {path}")
-`, ".", sessionSelector, editStyle)
+`
 
-	pyCmd := exec.Command("python3", "-c", pyScript)
+	pyCmd := exec.Command("python3", "-c", pyScript, paramsFile)
 	pyCmd.Stdout = cmd.OutOrStdout()
 	pyCmd.Stderr = cmd.ErrOrStderr()
 
@@ -187,24 +238,44 @@ for fmt, path in session.output_paths.items():
 func reExport(cmd *cobra.Command) error {
 	sessionSelector := getSessionSelector()
 	formats := parseCSV(editExport)
-	formatsJSON := toJSONArray(formats)
 
-	pyScript := fmt.Sprintf(`
-import sys, os
-sys.path.insert(0, os.path.dirname(os.path.abspath(%q)))
+	params := map[string]any{
+		"session_selector": sessionSelector,
+		"formats":          formats,
+	}
+	paramsFile, err := writeTempJSON(params)
+	if err != nil {
+		return fmt.Errorf("writing params: %w", err)
+	}
+	defer os.Remove(paramsFile)
+
+	pyScript := `
+import sys, os, json
+
+params = json.load(open(sys.argv[1]))
+sys.path.insert(0, os.path.dirname(os.path.abspath(sys.argv[1])))
 from slide_mcp.agents.orchestrator import Orchestrator
 
 orch = Orchestrator()
-%s
-paths = orch.export_formats(session_id, %s)
+session_selector = params.get("session_selector", "")
+if session_selector:
+    session_id = session_selector
+else:
+    sessions = orch.list_sessions()
+    if not sessions:
+        print("No sessions found.")
+        sys.exit(1)
+    session_id = sessions[0]['id']
+
+paths = orch.export_formats(session_id, params["formats"])
 for fmt, path in paths.items():
     if path.startswith("ERROR"):
         print(f"  {fmt}: {path}")
     else:
         print(f"  {fmt.upper()}: {path}")
-`, ".", sessionSelector, formatsJSON)
+`
 
-	pyCmd := exec.Command("python3", "-c", pyScript)
+	pyCmd := exec.Command("python3", "-c", pyScript, paramsFile)
 	pyCmd.Stdout = cmd.OutOrStdout()
 	pyCmd.Stderr = cmd.ErrOrStderr()
 
@@ -212,12 +283,5 @@ for fmt, path in paths.items():
 }
 
 func getSessionSelector() string {
-	if editSession != "" {
-		return fmt.Sprintf("session_id = %q", editSession)
-	}
-	return `sessions = orch.list_sessions()
-if not sessions:
-    print("No sessions found.")
-    sys.exit(1)
-session_id = sessions[0]['id']`
+	return editSession
 }

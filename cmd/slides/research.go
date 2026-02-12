@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -62,6 +64,10 @@ func init() {
 }
 
 func runResearch(cmd *cobra.Command, args []string) error {
+	// Validate slide count range
+	if researchSlideCount < 1 || researchSlideCount > 100 {
+		return fmt.Errorf("slide count must be between 1 and 100, got %d", researchSlideCount)
+	}
 	// Interactive mode if no topic provided
 	if researchTopic == "" {
 		return runResearchInteractive(cmd)
@@ -71,7 +77,7 @@ func runResearch(cmd *cobra.Command, args []string) error {
 
 func runResearchInteractive(cmd *cobra.Command) error {
 	fmt.Println("\n  Slide Builder — Research-Driven Presentation")
-	fmt.Println("  Powered by AI Agent Team\n")
+	fmt.Println("  Powered by AI Agent Team")
 
 	var topic, purpose, mood, audience, urls, files, outputDir, formats string
 	var slideCount int
@@ -208,29 +214,49 @@ func runResearchDirect(cmd *cobra.Command) error {
 	fmt.Printf("  Formats: %s\n", strings.Join(formatList, ", "))
 	fmt.Printf("  Running AI agent pipeline...\n\n")
 
-	// Build Python script
-	urlsJSON := toJSONArray(urlList)
-	filesJSON := toJSONArray(fileList)
-	formatsJSON := toJSONArray(formatList)
+	// Build params as JSON and write to a temp file (avoids shell injection)
+	params := map[string]any{
+		"topic":          researchTopic,
+		"urls":           urlList,
+		"files":          fileList,
+		"slide_count":    researchSlideCount,
+		"purpose":        researchPurpose,
+		"mood":           researchMood,
+		"audience":       researchAudience,
+		"style_name":     researchStyle,
+		"pptx_template":  researchPPTXTemplate,
+		"output_dir":     researchOutput,
+		"output_formats": formatList,
+	}
 
-	pyScript := fmt.Sprintf(`
+	paramsFile, err := writeTempJSON(params)
+	if err != nil {
+		return fmt.Errorf("writing params: %w", err)
+	}
+	defer os.Remove(paramsFile)
+
+	pyScript := `
 import sys, os, json
-sys.path.insert(0, os.path.dirname(os.path.abspath(%q)))
+
+params = json.load(open(sys.argv[1]))
+sys.path.insert(0, os.path.dirname(os.path.abspath(sys.argv[1])))
 from slide_mcp.agents.orchestrator import Orchestrator
+
+pptx_template = params.get("pptx_template") or None
 
 orch = Orchestrator()
 session = orch.create_presentation(
-    topic=%q,
-    urls=%s,
-    files=%s,
-    slide_count=%d,
-    purpose=%q,
-    mood=%q,
-    audience=%q,
-    style_name=%q,
-    pptx_template=%s,
-    output_dir=%q,
-    output_formats=%s,
+    topic=params["topic"],
+    urls=params.get("urls", []),
+    files=params.get("files", []),
+    slide_count=params.get("slide_count", 10),
+    purpose=params.get("purpose", "presentation"),
+    mood=params.get("mood", ""),
+    audience=params.get("audience", ""),
+    style_name=params.get("style_name", ""),
+    pptx_template=pptx_template,
+    output_dir=params.get("output_dir", "."),
+    output_formats=params.get("output_formats", ["html"]),
 )
 
 print("SESSION_ID:" + session.id)
@@ -241,22 +267,9 @@ for fmt, path in session.output_paths.items():
     print(f"OUTPUT:{fmt}:{path}")
 for i, s in enumerate(session.slides):
     print(f"SLIDE:{i+1}:[{s.get('type','content')}] {s.get('title','Untitled')}")
-`,
-		".",
-		researchTopic,
-		urlsJSON,
-		filesJSON,
-		researchSlideCount,
-		researchPurpose,
-		researchMood,
-		researchAudience,
-		researchStyle,
-		pyNone(researchPPTXTemplate),
-		researchOutput,
-		formatsJSON,
-	)
+`
 
-	pyCmd := exec.Command("python3", "-c", pyScript)
+	pyCmd := exec.Command("python3", "-c", pyScript, paramsFile)
 	pyCmd.Stdout = cmd.OutOrStdout()
 	pyCmd.Stderr = cmd.ErrOrStderr()
 
@@ -306,9 +319,21 @@ func runEditLoop(cmd *cobra.Command) error {
 
 		fmt.Printf("\n  Applying edit: %s\n", instruction)
 
-		pyScript := fmt.Sprintf(`
+		// Write edit params to a temp JSON file
+		editParams := map[string]any{
+			"instruction": instruction,
+		}
+		editFile, err := writeTempJSON(editParams)
+		if err != nil {
+			fmt.Printf("  Error: %v\n", err)
+			continue
+		}
+
+		pyScript := `
 import sys, os, json
-sys.path.insert(0, os.path.dirname(os.path.abspath(%q)))
+
+params = json.load(open(sys.argv[1]))
+sys.path.insert(0, os.path.dirname(os.path.abspath(sys.argv[1])))
 from slide_mcp.agents.orchestrator import Orchestrator
 
 orch = Orchestrator()
@@ -318,23 +343,23 @@ if not sessions:
     sys.exit(1)
 
 session_id = sessions[0]['id']
-session = orch.edit_presentation(session_id, %q)
+session = orch.edit_presentation(session_id, params["instruction"])
 print("UPDATED: " + str(len(session.slides)) + " slides")
 if session.edit_history:
     latest = session.edit_history[-1]
     print("CHANGES: " + latest.get('summary', 'Updated'))
 for fmt, path in session.output_paths.items():
     print(f"OUTPUT:{fmt}:{path}")
-`, ".", instruction)
+`
 
-		pyCmd := exec.Command("python3", "-c", pyScript)
+		pyCmd := exec.Command("python3", "-c", pyScript, editFile)
 		pyCmd.Stdout = cmd.OutOrStdout()
 		pyCmd.Stderr = cmd.ErrOrStderr()
 
 		if err := pyCmd.Run(); err != nil {
 			fmt.Printf("  Edit failed: %v\n", err)
-			continue
 		}
+		os.Remove(editFile)
 	}
 }
 
@@ -353,20 +378,20 @@ func parseCSV(s string) []string {
 	return result
 }
 
-func toJSONArray(items []string) string {
-	if items == nil || len(items) == 0 {
-		return "[]"
+// writeTempJSON marshals data to a temporary JSON file and returns its path.
+// The caller is responsible for removing the file when done.
+func writeTempJSON(data any) (string, error) {
+	f, err := os.CreateTemp("", "slide-builder-*.json")
+	if err != nil {
+		return "", fmt.Errorf("creating temp file: %w", err)
 	}
-	parts := make([]string, len(items))
-	for i, item := range items {
-		parts[i] = fmt.Sprintf("%q", item)
-	}
-	return "[" + strings.Join(parts, ", ") + "]"
-}
+	defer f.Close()
 
-func pyNone(s string) string {
-	if s == "" {
-		return "None"
+	enc := json.NewEncoder(f)
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(data); err != nil {
+		os.Remove(f.Name())
+		return "", fmt.Errorf("encoding JSON: %w", err)
 	}
-	return fmt.Sprintf("%q", s)
+	return f.Name(), nil
 }

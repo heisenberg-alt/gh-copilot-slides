@@ -41,7 +41,7 @@ def export_pptx(
         from pptx import Presentation
         from pptx.util import Inches, Pt, Emu
         from pptx.dml.color import RGBColor
-        from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
+        from pptx.enum.text import PP_ALIGN
     except ImportError:
         raise ImportError("python-pptx required: pip install python-pptx")
 

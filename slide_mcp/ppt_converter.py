@@ -7,8 +7,6 @@ and converts to structured slide data for HTML generation.
 
 from __future__ import annotations
 
-import base64
-import json
 import os
 from pathlib import Path
 from typing import Any
@@ -31,7 +29,6 @@ def extract_pptx(file_path: str, output_dir: str) -> dict[str, Any]:
     # Import here so we get a clear error if python-pptx is not installed
     try:
         from pptx import Presentation
-        from pptx.util import Inches, Pt
         from pptx.enum.shapes import MSO_SHAPE_TYPE
     except ImportError:
         raise ImportError(

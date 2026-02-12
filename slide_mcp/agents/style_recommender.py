@@ -26,7 +26,7 @@ class StyleRecommenderAgent(Agent):
     def run(self, context: ConversationContext) -> AgentResult:
         self._log(f"Recommending styles for: {context.topic}")
 
-        from ..styles import load_preset, load_all_presets, presets_for_mood, MOOD_MAP
+        from ..styles import load_preset, load_all_presets, presets_for_mood
 
         # If user already specified a style, validate and return it
         if context.style_name:

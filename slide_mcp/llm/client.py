@@ -14,8 +14,8 @@ import json
 import logging
 import os
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import Any, Callable
+from dataclasses import dataclass
+from typing import Any
 
 import httpx
 
@@ -24,6 +24,7 @@ logger = logging.getLogger("slide-builder.llm")
 COPILOT_CHAT_URL = "https://api.githubcopilot.com/chat/completions"
 OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions"
 DEFAULT_MODEL = "gpt-4o"
+DEFAULT_TIMEOUT = 120  # seconds
 
 
 @dataclass
@@ -67,11 +68,23 @@ class LLMClient(ABC):
 class CopilotClient(LLMClient):
     """GitHub Copilot Chat Completions API client."""
 
-    def __init__(self, token: str | None = None, model: str | None = None):
+    def __init__(
+        self,
+        token: str | None = None,
+        model: str | None = None,
+        timeout: int | None = None,
+        base_url: str | None = None,
+    ):
         self.token = token or os.getenv("GITHUB_TOKEN", "")
         self.model = model or os.getenv("SLIDE_LLM_MODEL", DEFAULT_MODEL)
+        self.base_url = base_url or os.getenv("SLIDE_COPILOT_URL", COPILOT_CHAT_URL)
+        self._timeout = timeout or int(os.getenv("SLIDE_LLM_TIMEOUT", str(DEFAULT_TIMEOUT)))
         if not self.token:
             raise ValueError("GITHUB_TOKEN environment variable is required for Copilot client")
+        self._client = httpx.Client(
+            timeout=self._timeout,
+            headers=self._headers(),
+        )
 
     def _headers(self) -> dict[str, str]:
         return {
@@ -88,10 +101,9 @@ class CopilotClient(LLMClient):
             "temperature": temperature,
             "stream": False,
         }
-        with httpx.Client(timeout=120) as client:
-            resp = client.post(COPILOT_CHAT_URL, json=payload, headers=self._headers())
-            resp.raise_for_status()
-            data = resp.json()
+        resp = self._client.post(self.base_url, json=payload)
+        resp.raise_for_status()
+        data = resp.json()
 
         if not data.get("choices"):
             raise RuntimeError("No choices in Copilot response")
@@ -101,15 +113,37 @@ class CopilotClient(LLMClient):
         raw = self.chat(messages, temperature=temperature)
         return _parse_json_response(raw)
 
+    def close(self) -> None:
+        """Close the underlying HTTP client."""
+        self._client.close()
+
+    def __del__(self) -> None:
+        try:
+            self._client.close()
+        except Exception:
+            pass
+
 
 class OpenAIClient(LLMClient):
     """OpenAI Chat Completions API client."""
 
-    def __init__(self, api_key: str | None = None, model: str | None = None):
+    def __init__(
+        self,
+        api_key: str | None = None,
+        model: str | None = None,
+        timeout: int | None = None,
+        base_url: str | None = None,
+    ):
         self.api_key = api_key or os.getenv("OPENAI_API_KEY", "")
         self.model = model or os.getenv("SLIDE_LLM_MODEL", DEFAULT_MODEL)
+        self.base_url = base_url or os.getenv("SLIDE_OPENAI_URL", OPENAI_CHAT_URL)
+        self._timeout = timeout or int(os.getenv("SLIDE_LLM_TIMEOUT", str(DEFAULT_TIMEOUT)))
         if not self.api_key:
             raise ValueError("OPENAI_API_KEY environment variable is required for OpenAI client")
+        self._client = httpx.Client(
+            timeout=self._timeout,
+            headers=self._headers(),
+        )
 
     def _headers(self) -> dict[str, str]:
         return {
@@ -123,10 +157,9 @@ class OpenAIClient(LLMClient):
             "messages": [m.to_dict() for m in messages],
             "temperature": temperature,
         }
-        with httpx.Client(timeout=120) as client:
-            resp = client.post(OPENAI_CHAT_URL, json=payload, headers=self._headers())
-            resp.raise_for_status()
-            data = resp.json()
+        resp = self._client.post(self.base_url, json=payload)
+        resp.raise_for_status()
+        data = resp.json()
 
         if not data.get("choices"):
             raise RuntimeError("No choices in OpenAI response")
@@ -135,6 +168,16 @@ class OpenAIClient(LLMClient):
     def chat_json(self, messages: list[Message], temperature: float = 0.3) -> dict[str, Any]:
         raw = self.chat(messages, temperature=temperature)
         return _parse_json_response(raw)
+
+    def close(self) -> None:
+        """Close the underlying HTTP client."""
+        self._client.close()
+
+    def __del__(self) -> None:
+        try:
+            self._client.close()
+        except Exception:
+            pass
 
 
 def _parse_json_response(raw: str) -> dict[str, Any]:

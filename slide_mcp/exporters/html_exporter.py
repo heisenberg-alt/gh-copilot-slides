@@ -4,12 +4,8 @@ HTML Exporter — wraps the existing generator for consistency.
 
 from __future__ import annotations
 
-import json
-import logging
 from pathlib import Path
 from typing import Any
-
-logger = logging.getLogger("slide-builder.exporters.html")
 
 
 def export_html(
@@ -47,7 +43,7 @@ def _export_with_custom_preset(
     flat_vars["title"] = title
     flat_vars["font_import"] = _build_font_import(preset)
     flat_vars["extra_css"] = preset.get("extra_css", "")
-    flat_vars["slides_html"] = _build_slide_html(slides, preset)
+    flat_vars["slides_html"] = _build_slide_html(slides)
 
     colors = preset.get("colors", {})
     for k, v in colors.items():

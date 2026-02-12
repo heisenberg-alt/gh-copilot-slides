@@ -12,6 +12,7 @@ import logging
 from typing import Any
 
 from .base import Agent, AgentResult, ConversationContext
+from ..utils import validate_slides
 
 logger = logging.getLogger("slide-builder.agents.editor")
 
@@ -22,7 +23,8 @@ class EditorAgent(Agent):
     name = "editor"
     description = "Modifies slides based on natural language edit instructions."
 
-    def run(self, context: ConversationContext, instruction: str = "") -> AgentResult:
+    def run(self, context: ConversationContext) -> AgentResult:
+        instruction = context.edit_instruction
         if not instruction:
             return AgentResult(
                 success=False,
@@ -112,26 +114,5 @@ Apply the edit and return the complete updated slides array."""
             raise ValueError("Unexpected response format from LLM")
 
         # Validate
-        updated_slides = self._validate_edited_slides(updated_slides)
+        updated_slides = validate_slides(updated_slides)
         return updated_slides, summary
-
-    def _validate_edited_slides(self, slides: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        """Ensure edited slides maintain valid structure."""
-        valid_types = {"title", "content", "feature_grid", "code", "quote", "image", "closing"}
-
-        for slide in slides:
-            if slide.get("type") not in valid_types:
-                slide["type"] = "content"
-            if not slide.get("title"):
-                slide["title"] = "Untitled"
-            if slide.get("bullets"):
-                slide["bullets"] = slide["bullets"][:6]
-            if slide.get("cards"):
-                slide["cards"] = slide["cards"][:6]
-
-        if slides and slides[0].get("type") != "title":
-            slides[0]["type"] = "title"
-        if slides and slides[-1].get("type") != "closing":
-            slides[-1]["type"] = "closing"
-
-        return slides

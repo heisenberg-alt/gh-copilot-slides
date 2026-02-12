@@ -1,0 +1,39 @@
+# Build artifacts
+bin/
+*.exe
+*.out
+
+# Test output
+test-output/
+.slide-sessions/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Go
+vendor/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+
+# Docs (not needed in image)
+*.md
+!README.md
+LICENSE
+
+# OS
+.DS_Store
+Thumbs.db

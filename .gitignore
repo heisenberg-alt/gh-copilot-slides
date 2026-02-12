@@ -32,6 +32,11 @@ output/
 *.html
 !templates/**/*.html
 
+# Generated assets & sessions
+assets/
+.slide-sessions/
+test-output/
+
 # OS
 .DS_Store
 Thumbs.db

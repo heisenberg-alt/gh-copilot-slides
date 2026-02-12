@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -104,26 +105,40 @@ func runConvert(cmd *cobra.Command, args []string) error {
 
 	fmt.Printf("\nConverting %s with style: %s ...\n", pptxPath, convertStyle)
 
-	// Call Python converter via subprocess
+	// Call Python converter via subprocess — params passed via temp JSON file
 	outputDir := filepath.Dir(convertOutput)
 	if outputDir == "" || outputDir == "." {
 		outputDir = "."
 	}
 
-	pyScript := fmt.Sprintf(`
-import sys, os
-sys.path.insert(0, os.path.dirname(os.path.abspath(%q)))
+	params := map[string]any{
+		"pptx_path":   pptxPath,
+		"output_dir":  outputDir,
+		"style_name":  convertStyle,
+		"output_path": convertOutput,
+	}
+	paramsFile, err := writeTempJSON(params)
+	if err != nil {
+		return fmt.Errorf("writing params: %w", err)
+	}
+	defer os.Remove(paramsFile)
+
+	pyScript := `
+import sys, os, json
+
+params = json.load(open(sys.argv[1]))
+sys.path.insert(0, os.path.dirname(os.path.abspath(sys.argv[1])))
 from slide_mcp.ppt_converter import pptx_to_slides
 from slide_mcp.generator import generate_presentation
 
-slides = pptx_to_slides(%q, %q)
+slides = pptx_to_slides(params["pptx_path"], params["output_dir"])
 title = slides[0]['title'] if slides and slides[0].get('title') else 'Presentation'
-result = generate_presentation(title, slides, %q, %q)
+result = generate_presentation(title, slides, params["style_name"], params["output_path"])
 print("Generated: " + result)
 print("Slides: " + str(len(slides)))
-`, ".", pptxPath, outputDir, convertStyle, convertOutput)
+`
 
-	pyCmd := exec.Command("python3", "-c", pyScript)
+	pyCmd := exec.Command("python3", "-c", pyScript, paramsFile)
 	pyCmd.Stdout = cmd.OutOrStdout()
 	pyCmd.Stderr = cmd.ErrOrStderr()
 

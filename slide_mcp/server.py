@@ -22,7 +22,6 @@ from __future__ import annotations
 
 import json
 import logging
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -41,6 +40,7 @@ from .styles import (
     list_presets_summary,
     presets_for_mood,
 )
+from .utils import validate_slides
 
 # Agent orchestrator imports (lazy — only loaded when agent tools are called)
 _orchestrator = None
@@ -197,6 +197,14 @@ def create_presentation(
         Path to the generated presentation file with summary.
     """
     try:
+        # Validate inputs
+        if not slides:
+            return "Error: slides list cannot be empty."
+        slides = validate_slides(slides)
+        if style_name and style_name not in ALL_PRESET_NAMES:
+            available = ", ".join(ALL_PRESET_NAMES)
+            return f"Error: Unknown style '{style_name}'. Available: {available}"
+
         result_path = generate_presentation(title, slides, style_name, output_path)
         return (
             f"Presentation generated successfully!\n\n"
@@ -215,6 +223,7 @@ def create_presentation(
     except FileNotFoundError as e:
         return f"Error: {e}"
     except Exception as e:
+        logger.exception("Error generating presentation")
         return f"Error generating presentation: {e}"
 
 
@@ -261,6 +270,7 @@ def convert_ppt(
     except ImportError as e:
         return str(e)
     except Exception as e:
+        logger.exception("Error converting PPT")
         return f"Error converting PPT: {e}"
 
 
@@ -284,6 +294,7 @@ def summarize_ppt(pptx_path: str, output_dir: str) -> str:
     except ImportError as e:
         return str(e)
     except Exception as e:
+        logger.exception("Error reading PPT")
         return f"Error reading PPT: {e}"
 
 
@@ -375,7 +386,6 @@ def research_topic(
     topic: str,
     urls: list[str] | None = None,
     files: list[str] | None = None,
-    search_depth: str = "normal",
 ) -> str:
     """
     Research a topic using web scraping, URL fetching, file reading, and web search.
@@ -387,7 +397,6 @@ def research_topic(
         topic: The topic to research.
         urls: Optional list of URLs to fetch content from.
         files: Optional list of local file paths (.txt, .md, .pdf, .docx, .pptx).
-        search_depth: "quick" (fewer sources), "normal" (default), or "deep" (more sources).
 
     Returns:
         Structured research summary with key facts, themes, and statistics.
@@ -432,6 +441,7 @@ def research_topic(
 
         return "\n".join(lines)
     except Exception as e:
+        logger.exception("Research failed")
         return f"Research failed: {e}"
 
 
@@ -475,6 +485,15 @@ def create_presentation_from_research(
         Session summary with output file paths and edit instructions.
     """
     try:
+        # Validate inputs
+        if not topic or not topic.strip():
+            return "Error: topic cannot be empty."
+        if not 1 <= slide_count <= 100:
+            return "Error: slide_count must be between 1 and 100."
+        if style_name and style_name not in ALL_PRESET_NAMES:
+            available = ", ".join(ALL_PRESET_NAMES)
+            return f"Error: Unknown style '{style_name}'. Available: {available}"
+
         orch = _get_orchestrator()
         session = orch.create_presentation(
             topic=topic,
@@ -516,6 +535,7 @@ def create_presentation_from_research(
 
         return "\n".join(lines)
     except Exception as e:
+        logger.exception("Error creating presentation")
         return f"Error creating presentation: {e}"
 
 
@@ -546,6 +566,11 @@ def edit_presentation(
         Summary of changes made and updated slide list.
     """
     try:
+        if not session_id or not session_id.strip():
+            return "Error: session_id cannot be empty."
+        if not instruction or not instruction.strip():
+            return "Error: instruction cannot be empty."
+
         orch = _get_orchestrator()
         session = orch.edit_presentation(session_id, instruction)
 
@@ -574,6 +599,7 @@ def edit_presentation(
 
         return "\n".join(lines)
     except Exception as e:
+        logger.exception("Edit failed")
         return f"Edit failed: {e}"
 
 
@@ -609,6 +635,7 @@ def export_presentation(
 
         return "\n".join(lines)
     except Exception as e:
+        logger.exception("Export failed")
         return f"Export failed: {e}"
 
 
@@ -649,6 +676,7 @@ def apply_pptx_template(
 
         return "\n".join(lines)
     except Exception as e:
+        logger.exception("Template application failed")
         return f"Template application failed: {e}"
 
 
@@ -677,6 +705,7 @@ def list_sessions() -> str:
 
         return "\n".join(lines)
     except Exception as e:
+        logger.exception("Error listing sessions")
         return f"Error listing sessions: {e}"
 
 
@@ -687,6 +716,11 @@ def list_sessions() -> str:
 
 def main():
     """Run the MCP server on stdio transport."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
     mcp.run(transport="stdio")
 
 

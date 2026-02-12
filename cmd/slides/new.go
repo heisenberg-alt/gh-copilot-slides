@@ -50,6 +50,10 @@ func init() {
 }
 
 func runNew(cmd *cobra.Command, args []string) error {
+	// Validate slide count range
+	if newSlideCount < 1 || newSlideCount > 100 {
+		return fmt.Errorf("slide count must be between 1 and 100, got %d", newSlideCount)
+	}
 	if newTopic != "" && newStyle != "" && newOutput != "" {
 		return runNewNonInteractive()
 	}

@@ -34,7 +34,7 @@ const (
 
 // Message represents a single chat message.
 type Message struct {
-	Role    string `json:"role"`    // "system", "user", "assistant"
+	Role    string `json:"role"` // "system", "user", "assistant"
 	Content string `json:"content"`
 }
 
@@ -68,14 +68,19 @@ type Client struct {
 
 // NewClient creates a Copilot client. It tries to use GITHUB_TOKEN
 // from the environment, or falls back to a provided token.
+// Model can be overridden with SLIDE_LLM_MODEL env var.
 func NewClient(token string) *Client {
 	if envToken := os.Getenv(TokenEnvVar); envToken != "" {
 		token = envToken
 	}
+	model := os.Getenv("SLIDE_LLM_MODEL")
+	if model == "" {
+		model = "gpt-4o"
+	}
 	return &Client{
 		Token:      token,
 		HTTPClient: &http.Client{Timeout: 120 * time.Second},
-		Model:      "gpt-4o",
+		Model:      model,
 	}
 }
 

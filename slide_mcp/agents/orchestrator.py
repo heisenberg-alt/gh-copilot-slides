@@ -15,7 +15,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from .base import Agent, AgentResult, ConversationContext
+from .base import AgentResult, ConversationContext
 from .researcher import ResearchAgent
 from .curator import CuratorAgent
 from .style_recommender import StyleRecommenderAgent
@@ -130,7 +130,6 @@ class Orchestrator:
             context.style_name = context.style_name or "bold_signal"
 
         session.style_name = context.style_name
-        session.style_name = context.style_name
 
         # ── Phase 4: Export ──────────────────────────────────────────────
         logger.info("[orchestrator] Phase 4: Export")
@@ -164,13 +163,14 @@ class Orchestrator:
             presentation_title=session.presentation_title,
             style_name=session.style_name,
             custom_preset=session.custom_preset,
-            output_dir=".",
+            output_dir=session.output_paths.get("html", ".").rsplit("/", 1)[0] if session.output_paths else ".",
             output_formats=session.output_formats,
             research_data=session.research_data,
         )
 
         # Run editor
-        edit_result = self.editor.run(context, instruction=instruction)
+        context.edit_instruction = instruction
+        edit_result = self.editor.run(context)
         if not edit_result.success:
             raise RuntimeError(f"Edit failed: {edit_result.error}")
 
@@ -218,7 +218,7 @@ class Orchestrator:
             presentation_title=session.presentation_title,
             style_name=session.style_name,
             custom_preset=session.custom_preset,
-            output_dir=".",
+            output_dir=session.output_paths.get("html", ".").rsplit("/", 1)[0] if session.output_paths else ".",
             output_formats=session.output_formats,
         )
         output_paths = self._export(context, session)

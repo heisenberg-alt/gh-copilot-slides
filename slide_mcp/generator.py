@@ -7,13 +7,11 @@ using Jinja2 templates and style presets.
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
-from jinja2 import Environment, BaseLoader
-
 from .styles import load_preset, presets_for_mood
+from .utils import escape_html
 
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
 
@@ -38,7 +36,7 @@ def _build_color_swatches(preset: dict[str, Any]) -> str:
     return "\n        ".join(swatches)
 
 
-def _build_slide_html(slides: list[dict[str, Any]], preset: dict[str, Any]) -> str:
+def _build_slide_html(slides: list[dict[str, Any]]) -> str:
     """
     Build the HTML for all slides from structured content.
 
@@ -57,14 +55,14 @@ def _build_slide_html(slides: list[dict[str, Any]], preset: dict[str, Any]) -> s
 
     for i, slide in enumerate(slides):
         slide_type = slide.get("type", "content")
-        title = slide.get("title", "")
-        subtitle = slide.get("subtitle", "")
-        bullets = slide.get("bullets", [])
-        code = slide.get("code", "")
-        quote = slide.get("quote", "")
-        attribution = slide.get("attribution", "")
+        title = escape_html(slide.get("title", ""))
+        subtitle = escape_html(slide.get("subtitle", ""))
+        bullets = [escape_html(b) for b in slide.get("bullets", [])]
+        code = slide.get("code", "")  # Code is rendered inside <code>, escape separately
+        quote = escape_html(slide.get("quote", ""))
+        attribution = escape_html(slide.get("attribution", ""))
         cards = slide.get("cards", [])
-        image_src = slide.get("image_src", "")
+        image_src = escape_html(slide.get("image_src", ""))
 
         css_class = f"slide {slide_type}-slide"
 
@@ -93,16 +91,16 @@ def _build_slide_html(slides: list[dict[str, Any]], preset: dict[str, Any]) -> s
     <section class="{css_class}">
         <div class="slide-content">
             <h2 class="reveal">{title}</h2>
-            <pre class="reveal" style="background: rgba(0,0,0,0.3); padding: clamp(1rem, 2vw, 2rem); border-radius: 8px; overflow: hidden; font-family: 'JetBrains Mono', monospace; font-size: var(--small-size); line-height: 1.6; margin-top: var(--content-gap);"><code>{code}</code></pre>
+            <pre class="reveal" style="background: rgba(0,0,0,0.3); padding: clamp(1rem, 2vw, 2rem); border-radius: 8px; overflow: hidden; font-family: 'JetBrains Mono', monospace; font-size: var(--small-size); line-height: 1.6; margin-top: var(--content-gap);"><code>{escape_html(code)}</code></pre>
         </div>
     </section>""")
 
         elif slide_type == "feature_grid":
             cards_html = ""
             for card in cards[:6]:  # Max 6 cards
-                card_title = card.get("title", "")
-                card_desc = card.get("description", "")
-                card_icon = card.get("icon", "")
+                card_title = escape_html(card.get("title", ""))
+                card_desc = escape_html(card.get("description", ""))
+                card_icon = escape_html(card.get("icon", ""))
                 cards_html += f"""
                 <div class="card reveal" style="background: rgba(255,255,255,0.05); padding: clamp(1rem, 2vw, 1.5rem); border-radius: 12px;">
                     {f'<div style="font-size: 1.5em; margin-bottom: 0.5rem;">{card_icon}</div>' if card_icon else ''}
@@ -187,25 +185,12 @@ def generate_presentation(
     preset = load_preset(style_name)
     template_str = _read_template("base.html")
 
-    # Build template variables
-    variables = {
-        "title": title,
-        "font_import": _build_font_import(preset),
-        "colors": preset["colors"],
-        "fonts": preset["fonts"],
-        "extra_css": preset.get("extra_css", ""),
-        "slides_html": _build_slide_html(slides, preset),
-    }
-
-    # Simple Jinja2-style replacement using string format
-    # We do manual replacement since our template uses {{ }} syntax
-    env = Environment(loader=BaseLoader())
-    # Replace nested dotted access with flat vars
+    # Build flat template variables for manual {{ key }} replacement
     flat_vars: dict[str, str] = {}
     flat_vars["title"] = title
-    flat_vars["font_import"] = variables["font_import"]
-    flat_vars["extra_css"] = variables["extra_css"]
-    flat_vars["slides_html"] = variables["slides_html"]
+    flat_vars["font_import"] = _build_font_import(preset)
+    flat_vars["extra_css"] = preset.get("extra_css", "")
+    flat_vars["slides_html"] = _build_slide_html(slides)
 
     colors = preset["colors"]
     for k, v in colors.items():

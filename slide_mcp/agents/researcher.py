@@ -14,10 +14,55 @@ import logging
 import os
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 from .base import Agent, AgentResult, ConversationContext
 
 logger = logging.getLogger("slide-builder.agents.researcher")
+
+# Safety limits
+_MAX_FILE_SIZE_MB = 50
+_ALLOWED_FILE_SUFFIXES = {".txt", ".md", ".csv", ".json", ".pdf", ".docx", ".pptx"}
+_BLOCKED_URL_SCHEMES = {"file", "ftp", "gopher", "data"}
+
+
+def _validate_url(url: str) -> str:
+    """Validate URL is a safe HTTP(S) URL. Raises ValueError otherwise."""
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        raise ValueError(f"Unsupported URL scheme '{parsed.scheme}' — only http/https allowed")
+    if not parsed.hostname:
+        raise ValueError(f"URL missing hostname: {url}")
+    # Block private/internal network access (SSRF protection)
+    hostname = parsed.hostname.lower()
+    if hostname in ("localhost", "127.0.0.1", "0.0.0.0", "::1"):
+        raise ValueError(f"Access to localhost is not allowed: {url}")
+    if hostname.endswith(".local") or hostname.endswith(".internal"):
+        raise ValueError(f"Access to internal hosts is not allowed: {url}")
+    # Block common private ranges embedded in hostnames
+    if hostname.startswith("10.") or hostname.startswith("192.168.") or hostname.startswith("172."):
+        raise ValueError(f"Access to private network addresses is not allowed: {url}")
+    return url
+
+
+def _validate_file_path(file_path: str) -> Path:
+    """Validate a file path is safe to read. Returns resolved Path."""
+    path = Path(file_path).resolve()
+    if not path.exists():
+        raise FileNotFoundError(f"File not found: {file_path}")
+    if not path.is_file():
+        raise ValueError(f"Not a file: {file_path}")
+    # Check suffix
+    if path.suffix.lower() not in _ALLOWED_FILE_SUFFIXES:
+        raise ValueError(
+            f"Unsupported file type '{path.suffix}'. "
+            f"Allowed: {', '.join(sorted(_ALLOWED_FILE_SUFFIXES))}"
+        )
+    # Check file size
+    size_mb = path.stat().st_size / (1024 * 1024)
+    if size_mb > _MAX_FILE_SIZE_MB:
+        raise ValueError(f"File too large ({size_mb:.1f}MB). Max: {_MAX_FILE_SIZE_MB}MB")
+    return path
 
 
 class ResearchAgent(Agent):
@@ -34,6 +79,7 @@ class ResearchAgent(Agent):
         # 1. Fetch URLs
         for url in context.urls:
             try:
+                _validate_url(url)
                 content = self._fetch_url(url)
                 if content:
                     sources.append({
@@ -49,7 +95,8 @@ class ResearchAgent(Agent):
         # 2. Read local files
         for file_path in context.files:
             try:
-                content = self._read_file(file_path)
+                validated_path = _validate_file_path(file_path)
+                content = self._read_file(str(validated_path))
                 if content:
                     sources.append({
                         "type": "file",
@@ -165,11 +212,10 @@ class ResearchAgent(Agent):
         """Extract text from a PDF file."""
         try:
             import pymupdf  # PyMuPDF
-            doc = pymupdf.open(str(path))
-            text_parts = []
-            for page in doc:
-                text_parts.append(page.get_text())
-            doc.close()
+            with pymupdf.open(str(path)) as doc:
+                text_parts = []
+                for page in doc:
+                    text_parts.append(page.get_text())
             return "\n\n".join(text_parts)
         except ImportError:
             raise ImportError("pymupdf is required for PDF reading. Install: pip install pymupdf")

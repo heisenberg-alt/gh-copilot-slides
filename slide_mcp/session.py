@@ -9,8 +9,9 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import uuid
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field, fields as dataclass_fields
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -18,6 +19,9 @@ from typing import Any
 logger = logging.getLogger("slide-builder.session")
 
 SESSIONS_DIR_NAME = ".slide-sessions"
+
+# Session IDs must be lowercase hex only (prevents path traversal)
+_SESSION_ID_RE = re.compile(r"^[a-f0-9]{1,32}$")
 
 
 @dataclass
@@ -50,7 +54,8 @@ class PresentationSession:
             self.id = uuid.uuid4().hex[:12]
         if not self.created_at:
             self.created_at = datetime.now().isoformat()
-        self.updated_at = datetime.now().isoformat()
+        if not self.updated_at:
+            self.updated_at = datetime.now().isoformat()
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to a dict."""
@@ -78,10 +83,11 @@ class PresentationSession:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> PresentationSession:
-        """Deserialize from a dict."""
+        """Deserialize from a dict, only setting known dataclass fields."""
         session = cls()
+        allowed = {f.name for f in dataclass_fields(cls)}
         for key, value in data.items():
-            if hasattr(session, key):
+            if key in allowed:
                 setattr(session, key, value)
         return session
 
@@ -103,6 +109,10 @@ class SessionManager:
         self.sessions_dir.mkdir(parents=True, exist_ok=True)
 
     def _session_path(self, session_id: str) -> Path:
+        if not _SESSION_ID_RE.match(session_id):
+            raise ValueError(
+                f"Invalid session ID '{session_id}': must be 1-32 lowercase hex characters"
+            )
         return self.sessions_dir / f"{session_id}.json"
 
     def create(self, **kwargs: Any) -> PresentationSession:
@@ -113,10 +123,11 @@ class SessionManager:
         return session
 
     def save(self, session: PresentationSession) -> None:
-        """Save a session to disk."""
+        """Save a session to disk with restrictive file permissions."""
         session.updated_at = datetime.now().isoformat()
         path = self._session_path(session.id)
         path.write_text(json.dumps(session.to_dict(), indent=2), encoding="utf-8")
+        path.chmod(0o600)
 
     def load(self, session_id: str) -> PresentationSession:
         """Load a session from disk."""
