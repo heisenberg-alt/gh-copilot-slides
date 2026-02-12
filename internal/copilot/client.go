@@ -75,7 +75,7 @@ func NewClient(token string) *Client {
 	}
 	model := os.Getenv("SLIDE_LLM_MODEL")
 	if model == "" {
-		model = "gpt-4o"
+		model = "gpt-5.2"
 	}
 	return &Client{
 		Token:      token,

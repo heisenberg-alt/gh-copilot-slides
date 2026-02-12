@@ -127,7 +127,7 @@ Topic + URLs + Files
 | `GITHUB_TOKEN` | GitHub Copilot API auth | — |
 | `OPENAI_API_KEY` | OpenAI API auth | — |
 | `SLIDE_LLM_PROVIDER` | Force `copilot` or `openai` | auto-detect |
-| `SLIDE_LLM_MODEL` | Model override | `gpt-4o` |
+| `SLIDE_LLM_MODEL` | Model override | `gpt-5.2` |
 | `SLIDE_LLM_TIMEOUT` | Request timeout (seconds) | `60` |
 
 Auto-detection: prefers Copilot (`GITHUB_TOKEN`) when available, falls back to OpenAI.

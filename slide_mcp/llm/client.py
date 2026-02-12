@@ -5,7 +5,7 @@ Environment variables:
   SLIDE_LLM_PROVIDER  — "copilot" or "openai" (auto-detected if unset)
   GITHUB_TOKEN        — Token for GitHub Copilot API
   OPENAI_API_KEY      — Token for OpenAI API
-  SLIDE_LLM_MODEL     — Override model name (default: gpt-4o)
+  SLIDE_LLM_MODEL     — Override model name (default: gpt-5.2)
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ logger = logging.getLogger("slide-builder.llm")
 
 COPILOT_CHAT_URL = "https://api.githubcopilot.com/chat/completions"
 OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions"
-DEFAULT_MODEL = "gpt-4o"
+DEFAULT_MODEL = "gpt-5.2"
 DEFAULT_TIMEOUT = 120  # seconds
 
 
