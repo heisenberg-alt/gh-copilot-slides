@@ -1,7 +1,7 @@
 [project]
 name = "slide-builder-mcp"
-version = "1.0.0"
-description = "MCP server for creating stunning HTML presentations — ported from frontend-slides"
+version = "2.0.0"
+description = "MCP server and AI agent team for creating stunning HTML/PPTX/PDF presentations"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
@@ -10,6 +10,23 @@ dependencies = [
     "python-pptx>=1.0.2",
     "jinja2>=3.1.4",
     "pydantic>=2.10.0",
+    "httpx>=0.27.0",
+    "beautifulsoup4>=4.12.0",
+    "trafilatura>=1.12.0",
+    "duckduckgo-search>=6.0.0",
+]
+
+[project.optional-dependencies]
+research = [
+    "pymupdf>=1.24.0",
+    "python-docx>=1.1.0",
+]
+pdf = [
+    "playwright>=1.45.0",
+]
+all = [
+    "slide-builder-mcp[research,pdf]",
+    "openai>=1.30.0",
 ]
 
 [project.scripts]
