@@ -1,6 +1,6 @@
 # Slide Builder — GitHub Copilot Edition
 
-A dual-architecture tool for creating stunning, animation-rich HTML presentations — from scratch or by converting PowerPoint files. Ported from [frontend-slides](https://github.com/zarazhangrui/frontend-slides) (Claude Code skill) to work with **GitHub Copilot SDK** and as a standalone **Go CLI**.
+A dual-architecture tool for creating stunning, animation-rich HTML presentations — from scratch or by converting PowerPoint files. Built with **GitHub Copilot SDK** and as a standalone **Go CLI**.
 
 ## Architecture
 
@@ -173,11 +173,6 @@ Set `GITHUB_TOKEN` environment variable for authentication.
 - **Python 3.10+** for the MCP server and PPT conversion
 - **python-pptx** for PowerPoint conversion
 - **GitHub Copilot** access for AI-powered content generation (optional — works without it using sample content)
-
-## Credits
-
-Ported from [frontend-slides](https://github.com/zarazhangrui/frontend-slides) by [@zarazhangrui](https://github.com/zarazhangrui).
-Original concept: Create beautiful slides using AI with the "show, don't tell" philosophy.
 
 ## License
 
