@@ -31,6 +31,7 @@ venv/
 output/
 *.html
 !templates/**/*.html
+!docs/**/*.html
 
 # Generated assets & sessions
 assets/

@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Documentation — Slide Builder</title>
+<meta name="description" content="Complete documentation for Slide Builder — installation, CLI reference, MCP tools, configuration, and architecture.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #050505;
+  --bg-elevated: #0a0a0a;
+  --bg-card: #111111;
+  --surface: #1a1a1a;
+  --border: #222222;
+  --text-primary: #f5f5f7;
+  --text-secondary: #a1a1a6;
+  --text-tertiary: #6e6e73;
+  --accent: #2997ff;
+  --accent-hover: #0077ed;
+  --green: #30d158;
+  --purple: #bf5af2;
+  --orange: #ff9f0a;
+  --pink: #ff375f;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+  --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text-primary);
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+a { color: var(--accent); text-decoration: none; transition: color 0.2s; }
+a:hover { color: var(--accent-hover); }
+
+/* ── Nav ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(5,5,5,0.72);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+nav .nav-inner {
+  max-width: 1200px; margin: 0 auto; padding: 0 2rem;
+  height: 52px; display: flex; align-items: center; justify-content: space-between;
+}
+
+nav .logo { font-weight: 600; font-size: 1.05rem; color: var(--text-primary); letter-spacing: -0.02em; }
+nav .logo span { color: var(--text-tertiary); font-weight: 400; }
+
+nav .nav-links { display: flex; gap: 2rem; list-style: none; }
+nav .nav-links a { color: var(--text-secondary); font-size: 0.85rem; font-weight: 400; }
+nav .nav-links a:hover { color: var(--text-primary); }
+
+/* ── Layout ── */
+.docs-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-top: 52px;
+  min-height: 100vh;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  position: sticky;
+  top: 52px;
+  height: calc(100vh - 52px);
+  overflow-y: auto;
+  padding: 2rem 1.5rem 2rem 2rem;
+  border-right: 1px solid var(--border);
+}
+
+.sidebar h4 {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-tertiary);
+  margin: 1.5rem 0 0.5rem;
+  font-weight: 500;
+}
+
+.sidebar h4:first-child { margin-top: 0; }
+
+.sidebar a {
+  display: block;
+  padding: 0.3rem 0;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  transition: color 0.15s;
+}
+
+.sidebar a:hover { color: var(--text-primary); }
+.sidebar a.active { color: var(--accent); font-weight: 500; }
+
+/* ── Content ── */
+.docs-content {
+  padding: 3rem 3rem 6rem;
+  max-width: 820px;
+}
+
+.docs-content h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.5rem;
+}
+
+.docs-content .lead {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  font-weight: 300;
+  margin-bottom: 3rem;
+  line-height: 1.6;
+}
+
+.docs-content h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 3.5rem 0 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.docs-content h2:first-of-type { border-top: none; margin-top: 0; }
+
+.docs-content h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 2rem 0 0.75rem;
+  color: var(--text-primary);
+}
+
+.docs-content p {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+.docs-content ul, .docs-content ol {
+  color: var(--text-secondary);
+  margin: 0 0 1.25rem 1.25rem;
+  font-size: 0.95rem;
+}
+
+.docs-content li { margin-bottom: 0.4rem; }
+
+/* ── Code blocks ── */
+.docs-content pre {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.7;
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+  color: var(--text-secondary);
+}
+
+.docs-content code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--surface);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  color: var(--accent);
+}
+
+.docs-content pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+}
+
+.prompt { color: var(--green); }
+.cmd { color: var(--text-primary); }
+.flag { color: var(--purple); }
+.string { color: var(--orange); }
+.comment { color: var(--text-tertiary); }
+
+/* ── Tables ── */
+.docs-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.docs-content th, .docs-content td {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.docs-content th {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+.docs-content td { color: var(--text-secondary); }
+.docs-content td code { font-size: 0.8rem; }
+
+/* ── Callout ── */
+.callout {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.callout.warn { border-left-color: var(--orange); }
+.callout strong { color: var(--text-primary); }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .docs-layout { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .docs-content { padding: 2rem 1.25rem 4rem; }
+  nav .nav-links { display: none; }
+}
+
+/* ── Scroll progress ── */
+.scroll-progress {
+  position: fixed; top: 52px; left: 0; height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--purple));
+  z-index: 101; width: 0%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">Slide Builder <span>v1.0</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html#features">Features</a></li>
+      <li><a href="index.html#pipeline">Pipeline</a></li>
+      <li><a href="docs.html" style="color: var(--text-primary);">Docs</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="docs-layout">
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <h4>Getting Started</h4>
+  <a href="#installation">Installation</a>
+  <a href="#requirements">Requirements</a>
+  <a href="#configuration">Configuration</a>
+
+  <h4>Usage</h4>
+  <a href="#vscode-copilot">VS Code Copilot</a>
+  <a href="#cli-reference">CLI Reference</a>
+  <a href="#docker">Docker</a>
+
+  <h4>Reference</h4>
+  <a href="#mcp-tools">MCP Tools</a>
+  <a href="#agent-pipeline">Agent Pipeline</a>
+  <a href="#style-presets">Style Presets</a>
+  <a href="#sessions">Sessions</a>
+
+  <h4>Advanced</h4>
+  <a href="#pptx-templates">PPTX Templates</a>
+  <a href="#output-features">Output Features</a>
+  <a href="#project-structure">Project Structure</a>
+</aside>
+
+<!-- Content -->
+<main class="docs-content">
+
+<h1>Documentation</h1>
+<p class="lead">
+  Everything you need to install, configure, and use Slide Builder —
+  whether through VS Code Copilot, the Go CLI, or Docker.
+</p>
+
+<!-- ─── Installation ─── -->
+<h2 id="installation">Installation</h2>
+
+<h3>Python (MCP Server &amp; Agents)</h3>
+<pre><code><span class="comment"># Full install — all features</span>
+<span class="prompt">$</span> <span class="cmd">pip install</span> <span class="flag">-e</span> <span class="string">".[all]"</span>
+
+<span class="comment"># Minimal — core features only</span>
+<span class="prompt">$</span> <span class="cmd">pip install</span> <span class="flag">-e</span> <span class="string">"."</span>
+
+<span class="comment"># PDF export (requires Chromium)</span>
+<span class="prompt">$</span> <span class="cmd">pip install</span> <span class="flag">-e</span> <span class="string">".[pdf]"</span>
+<span class="prompt">$</span> <span class="cmd">python</span> <span class="flag">-m</span> playwright install chromium
+
+<span class="comment"># Research file support (PDF/DOCX reading)</span>
+<span class="prompt">$</span> <span class="cmd">pip install</span> <span class="flag">-e</span> <span class="string">".[research]"</span></code></pre>
+
+<h3>Go CLI</h3>
+<pre><code><span class="prompt">$</span> <span class="cmd">go build</span> <span class="flag">-o</span> bin/slides ./cmd/slides</code></pre>
+
+<!-- ─── Requirements ─── -->
+<h2 id="requirements">Requirements</h2>
+
+<table>
+  <thead><tr><th>Requirement</th><th>Version</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td>Go</td><td>1.23+</td><td>CLI binary</td></tr>
+    <tr><td>Python</td><td>3.10+</td><td>MCP server, agents, exporters</td></tr>
+    <tr><td>GitHub Copilot or OpenAI</td><td>—</td><td>LLM backend</td></tr>
+  </tbody>
+</table>
+
+<!-- ─── Configuration ─── -->
+<h2 id="configuration">Configuration</h2>
+
+<table>
+  <thead><tr><th>Variable</th><th>Purpose</th><th>Default</th></tr></thead>
+  <tbody>
+    <tr><td><code>GITHUB_TOKEN</code></td><td>GitHub Copilot API authentication</td><td>—</td></tr>
+    <tr><td><code>OPENAI_API_KEY</code></td><td>OpenAI API authentication</td><td>—</td></tr>
+    <tr><td><code>SLIDE_LLM_PROVIDER</code></td><td>Force provider: <code>copilot</code> or <code>openai</code></td><td>auto-detect</td></tr>
+    <tr><td><code>SLIDE_LLM_MODEL</code></td><td>Model name override</td><td><code>gpt-4o</code></td></tr>
+    <tr><td><code>SLIDE_LLM_TIMEOUT</code></td><td>Request timeout in seconds</td><td><code>60</code></td></tr>
+    <tr><td><code>SLIDE_COPILOT_URL</code></td><td>Custom Copilot API base URL</td><td>GitHub default</td></tr>
+    <tr><td><code>SLIDE_OPENAI_URL</code></td><td>Custom OpenAI API base URL</td><td>OpenAI default</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <strong>Auto-detection:</strong> If <code>GITHUB_TOKEN</code> is set, Copilot is used. If only <code>OPENAI_API_KEY</code> is set, OpenAI is used. Set <code>SLIDE_LLM_PROVIDER</code> to override.
+</div>
+
+<!-- ─── VS Code Copilot ─── -->
+<h2 id="vscode-copilot">VS Code Copilot</h2>
+
+<p>The MCP server is auto-configured via <code>.vscode/mcp.json</code>. After installing dependencies, open the project in VS Code and use Copilot Chat in agent mode.</p>
+
+<h3>Prompts</h3>
+<pre><code><span class="comment"># Full research pipeline</span>
+<span class="string">@slide-builder</span> /research_and_present
+
+<span class="comment"># Quick presentation</span>
+<span class="string">@slide-builder</span> /new_presentation
+
+<span class="comment"># Convert PowerPoint</span>
+<span class="string">@slide-builder</span> /convert_powerpoint</code></pre>
+
+<h3>Example</h3>
+<pre><code><span class="string">@slide-builder</span> Create a researched presentation about
+renewable energy from https://www.irena.org with 10 slides
+in Bold Signal style, export as HTML and PPTX</code></pre>
+
+<!-- ─── CLI Reference ─── -->
+<h2 id="cli-reference">CLI Reference</h2>
+
+<h3><code>slides research</code></h3>
+<p>Full AI pipeline — research, curate, style, and export a presentation.</p>
+<pre><code><span class="prompt">$</span> <span class="cmd">./bin/slides research</span> \
+    <span class="flag">--topic</span> <span class="string">"AI in Healthcare"</span> \
+    <span class="flag">--urls</span> <span class="string">"https://example.com/report"</span> \
+    <span class="flag">--slides</span> <span class="string">8</span> \
+    <span class="flag">--formats</span> <span class="string">html,pptx,pdf</span> \
+    <span class="flag">--pptx-template</span> <span class="string">corporate.pptx</span>
+
+<span class="comment"># Interactive mode (prompts for all options)</span>
+<span class="prompt">$</span> <span class="cmd">./bin/slides research</span></code></pre>
+
+<h3><code>slides new</code></h3>
+<p>Quick presentation with Copilot — no research pipeline.</p>
+<pre><code><span class="prompt">$</span> <span class="cmd">./bin/slides new</span> \
+    <span class="flag">--topic</span> <span class="string">"Startup Pitch"</span> \
+    <span class="flag">--style</span> <span class="string">neon_cyber</span> \
+    <span class="flag">--slides</span> <span class="string">6</span> \
+    <span class="flag">--output</span> <span class="string">pitch.html</span></code></pre>
+
+<h3><code>slides edit</code></h3>
+<p>Edit an existing presentation with natural language instructions.</p>
+<pre><code><span class="comment"># Single edit</span>
+<span class="prompt">$</span> <span class="cmd">./bin/slides edit</span> <span class="flag">--instruction</span> <span class="string">"Change slide 3 to a quote slide"</span>
+
+<span class="comment"># Interactive edit loop</span>
+<span class="prompt">$</span> <span class="cmd">./bin/slides edit</span>
+
+<span class="comment"># Change style</span>
+<span class="prompt">$</span> <span class="cmd">./bin/slides edit</span> <span class="flag">--change-style</span>
+
+<span class="comment"># Re-export to new formats</span>
+<span class="prompt">$</span> <span class="cmd">./bin/slides edit</span> <span class="flag">--export</span> <span class="string">pdf</span></code></pre>
+
+<h3><code>slides convert</code></h3>
+<p>Convert a PowerPoint file to an HTML presentation.</p>
+<pre><code><span class="prompt">$</span> <span class="cmd">./bin/slides convert</span> <span class="string">deck.pptx</span> \
+    <span class="flag">--style</span> <span class="string">bold_signal</span> \
+    <span class="flag">--output</span> <span class="string">web-deck.html</span></code></pre>
+
+<h3><code>slides preview</code></h3>
+<p>Generate visual style previews filtered by mood.</p>
+<pre><code><span class="prompt">$</span> <span class="cmd">./bin/slides preview</span> <span class="flag">--mood</span> <span class="string">calm</span> <span class="flag">--output</span> <span class="string">./previews/</span></code></pre>
+
+<h3><code>slides list-styles</code></h3>
+<p>List all available style presets.</p>
+<pre><code><span class="prompt">$</span> <span class="cmd">./bin/slides list-styles</span></code></pre>
+
+<!-- ─── Docker ─── -->
+<h2 id="docker">Docker</h2>
+
+<p>Multi-stage build: Go CLI compiled in Alpine, Python runtime on slim Debian. Runs as non-root.</p>
+
+<pre><code><span class="prompt">$</span> <span class="cmd">docker build</span> <span class="flag">-t</span> <span class="string">slide-builder</span> <span class="cmd">.</span>
+
+<span class="comment"># Run MCP server (default)</span>
+<span class="prompt">$</span> <span class="cmd">docker run</span> <span class="flag">-e</span> <span class="string">GITHUB_TOKEN="$GITHUB_TOKEN"</span> slide-builder
+
+<span class="comment"># Run Go CLI inside container</span>
+<span class="prompt">$</span> <span class="cmd">docker run</span> <span class="flag">--entrypoint</span> slides <span class="string">slide-builder</span> research <span class="flag">--topic</span> <span class="string">"Demo"</span></code></pre>
+
+<!-- ─── MCP Tools ─── -->
+<h2 id="mcp-tools">MCP Tools</h2>
+
+<h3>Presentation Tools</h3>
+<table>
+  <thead><tr><th>Tool</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>create_presentation</code></td><td>Generate a full HTML presentation from topic + style</td></tr>
+    <tr><td><code>create_presentation_from_research</code></td><td>Full pipeline: research → curate → style → export</td></tr>
+    <tr><td><code>edit_presentation</code></td><td>Edit slides with natural language instructions</td></tr>
+    <tr><td><code>export_presentation</code></td><td>Export a session to additional formats</td></tr>
+    <tr><td><code>convert_ppt</code></td><td>Convert .pptx to styled HTML</td></tr>
+    <tr><td><code>summarize_ppt</code></td><td>Extract and summarize PowerPoint content</td></tr>
+  </tbody>
+</table>
+
+<h3>Research &amp; Style Tools</h3>
+<table>
+  <thead><tr><th>Tool</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>research_topic</code></td><td>Research a topic from URLs, web search, and files</td></tr>
+    <tr><td><code>list_styles</code></td><td>List all 10 style presets</td></tr>
+    <tr><td><code>get_style_details</code></td><td>Get full config for a specific preset</td></tr>
+    <tr><td><code>preview_styles</code></td><td>Generate visual previews filtered by mood</td></tr>
+    <tr><td><code>apply_pptx_template</code></td><td>Apply a PPTX template's theme to a session</td></tr>
+    <tr><td><code>list_sessions</code></td><td>List all saved presentation sessions</td></tr>
+  </tbody>
+</table>
+
+<!-- ─── Agent Pipeline ─── -->
+<h2 id="agent-pipeline">Agent Pipeline</h2>
+
+<p>The orchestrator coordinates five specialized agents in sequence:</p>
+
+<table>
+  <thead><tr><th>Step</th><th>Agent</th><th>Input</th><th>Output</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td><strong>Research</strong></td><td>Topic, URLs, files</td><td>Synthesized facts, stats, quotes, themes</td></tr>
+    <tr><td>2</td><td><strong>Curator</strong></td><td>Research bundle, slide count</td><td>Structured slide array with types and narrative arc</td></tr>
+    <tr><td>3</td><td><strong>Style Recommender</strong></td><td>Content tone, mood</td><td>Best-fit style preset name</td></tr>
+    <tr><td>4</td><td><strong>Exporter</strong></td><td>Slides + style</td><td>HTML, PPTX, and/or PDF files</td></tr>
+    <tr><td>5</td><td><strong>Editor</strong></td><td>Natural language instruction</td><td>Modified slide array (loop)</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <strong>Research Agent</strong> supports URLs (with SSRF protection), DuckDuckGo web search, and local files (<code>.pdf</code>, <code>.docx</code>, <code>.pptx</code>, <code>.txt</code>, <code>.md</code>) with a 50MB size limit.
+</div>
+
+<!-- ─── Style Presets ─── -->
+<h2 id="style-presets">Style Presets</h2>
+
+<h3>Dark Themes</h3>
+<table>
+  <thead><tr><th>Preset</th><th>Character</th></tr></thead>
+  <tbody>
+    <tr><td><code>bold_signal</code></td><td>Confident, bold, high-impact</td></tr>
+    <tr><td><code>electric_studio</code></td><td>Sleek, minimal, premium</td></tr>
+    <tr><td><code>creative_voltage</code></td><td>Energetic, retro-modern</td></tr>
+    <tr><td><code>dark_botanical</code></td><td>Elegant, artistic, sophisticated</td></tr>
+  </tbody>
+</table>
+
+<h3>Light Themes</h3>
+<table>
+  <thead><tr><th>Preset</th><th>Character</th></tr></thead>
+  <tbody>
+    <tr><td><code>notebook_tabs</code></td><td>Editorial, structured, paper-like</td></tr>
+    <tr><td><code>pastel_geometry</code></td><td>Friendly, organized, modern</td></tr>
+    <tr><td><code>split_pastel</code></td><td>Clean, playful, balanced</td></tr>
+    <tr><td><code>vintage_editorial</code></td><td>Witty, confident, personality-driven</td></tr>
+  </tbody>
+</table>
+
+<h3>Specialty</h3>
+<table>
+  <thead><tr><th>Preset</th><th>Character</th></tr></thead>
+  <tbody>
+    <tr><td><code>neon_cyber</code></td><td>Futuristic, cyberpunk, techy</td></tr>
+    <tr><td><code>terminal_green</code></td><td>Developer, retro terminal, hacker</td></tr>
+  </tbody>
+</table>
+
+<h3>Mood Mapping</h3>
+<table>
+  <thead><tr><th>Mood</th><th>Recommended</th></tr></thead>
+  <tbody>
+    <tr><td>Professional</td><td>Bold Signal, Notebook Tabs, Electric Studio</td></tr>
+    <tr><td>Excited</td><td>Creative Voltage, Neon Cyber, Split Pastel</td></tr>
+    <tr><td>Calm</td><td>Notebook Tabs, Vintage Editorial, Pastel Geometry</td></tr>
+    <tr><td>Technical</td><td>Terminal Green, Neon Cyber, Electric Studio</td></tr>
+    <tr><td>Elegant</td><td>Dark Botanical, Vintage Editorial, Notebook Tabs</td></tr>
+  </tbody>
+</table>
+
+<!-- ─── Sessions ─── -->
+<h2 id="sessions">Sessions</h2>
+
+<p>Presentations are automatically persisted as sessions in <code>.slide-sessions/</code>. Each session stores the slide data, style, research context, and edit history.</p>
+
+<ul>
+  <li><strong>Iterative editing</strong> — run <code>slides edit</code> multiple times against the same deck</li>
+  <li><strong>Style changes</strong> — switch presets without regenerating content</li>
+  <li><strong>Re-export</strong> — generate additional formats from an existing session</li>
+  <li><strong>History</strong> — full edit trail is preserved</li>
+</ul>
+
+<p>Session IDs are hex-only (up to 32 characters) and files are written with restricted permissions (0600) for security.</p>
+
+<!-- ─── PPTX Templates ─── -->
+<h2 id="pptx-templates">PPTX Templates</h2>
+
+<p>Apply branding from an existing PowerPoint template. The Style Recommender extracts colors, fonts, and theme data, then applies them to the generated slides.</p>
+
+<pre><code><span class="prompt">$</span> <span class="cmd">./bin/slides research</span> \
+    <span class="flag">--topic</span> <span class="string">"Q4 Results"</span> \
+    <span class="flag">--pptx-template</span> <span class="string">corporate.pptx</span> \
+    <span class="flag">--formats</span> <span class="string">pptx</span></code></pre>
+
+<div class="callout">
+  Template extraction works with standard PPTX files. Custom XML-heavy templates may lose some formatting details.
+</div>
+
+<!-- ─── Output Features ─── -->
+<h2 id="output-features">Output Features</h2>
+
+<p>Every generated HTML presentation includes:</p>
+
+<ul>
+  <li><strong>Zero dependencies</strong> — single self-contained HTML file with inline CSS/JS</li>
+  <li><strong>Keyboard navigation</strong> — arrow keys, space, home/end</li>
+  <li><strong>Touch &amp; swipe</strong> — mobile-friendly gesture support</li>
+  <li><strong>Mouse wheel</strong> — smooth scroll-snap between slides</li>
+  <li><strong>Progress bar</strong> — visual position indicator</li>
+  <li><strong>Navigation dots</strong> — click to jump to any slide</li>
+  <li><strong>Scroll-triggered animations</strong> — fade, scale, blur variants</li>
+  <li><strong>Responsive design</strong> — viewport-fitting with <code>clamp()</code></li>
+  <li><strong>Reduced motion</strong> — respects <code>prefers-reduced-motion</code> media query</li>
+</ul>
+
+<!-- ─── Project Structure ─── -->
+<h2 id="project-structure">Project Structure</h2>
+
+<pre><code>cmd/slides/               <span class="comment"># Go CLI (Cobra)</span>
+├── main.go               <span class="comment"># Root command, version</span>
+├── new.go                <span class="comment"># Quick presentation</span>
+├── research.go           <span class="comment"># Full pipeline</span>
+├── edit.go               <span class="comment"># Edit existing decks</span>
+├── convert.go            <span class="comment"># PPTX → HTML</span>
+├── preview.go            <span class="comment"># Style previews</span>
+└── list_styles.go        <span class="comment"># List presets</span>
+
+internal/
+├── copilot/client.go     <span class="comment"># GitHub Copilot API client</span>
+├── generator/generator.go <span class="comment"># HTML generation engine</span>
+└── styles/styles.go      <span class="comment"># Style preset loader</span>
+
+slide_mcp/
+├── server.py             <span class="comment"># MCP server (FastMCP, 12 tools)</span>
+├── session.py            <span class="comment"># Session persistence</span>
+├── generator.py          <span class="comment"># Python HTML generator</span>
+├── ppt_converter.py      <span class="comment"># python-pptx integration</span>
+├── agents/               <span class="comment"># 5-agent orchestrator</span>
+│   ├── orchestrator.py
+│   ├── researcher.py
+│   ├── curator.py
+│   ├── style_recommender.py
+│   └── editor.py
+├── llm/client.py         <span class="comment"># Copilot + OpenAI backends</span>
+├── exporters/            <span class="comment"># HTML, PPTX, PDF output</span>
+└── styles/               <span class="comment"># Style preset management</span>
+
+templates/
+├── base.html             <span class="comment"># Full presentation template</span>
+├── preview.html          <span class="comment"># Single-slide preview</span>
+└── presets/              <span class="comment"># 10 JSON style configs</span></code></pre>
+
+<h3>Testing</h3>
+<pre><code><span class="comment"># Python (107 tests)</span>
+<span class="prompt">$</span> <span class="cmd">pytest</span>
+
+<span class="comment"># Go (25 tests)</span>
+<span class="prompt">$</span> <span class="cmd">go test</span> ./...</code></pre>
+
+</main>
+</div>
+
+<script>
+// Scroll progress
+const sp = document.getElementById('scrollProgress');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  sp.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100 + '%';
+}, { passive: true });
+
+// Active sidebar link
+const sections = document.querySelectorAll('h2[id]');
+const links = document.querySelectorAll('.sidebar a');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector('.sidebar a[href="#' + e.target.id + '"]');
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-80px 0px -60% 0px' });
+sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

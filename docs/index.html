@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Slide Builder — AI-Powered Presentations</title>
+<meta name="description" content="Research any topic. Generate stunning decks. Export to HTML, PPTX, PDF. Powered by a 5-agent AI pipeline.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Base ── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #050505;
+  --bg-elevated: #0a0a0a;
+  --bg-card: #111111;
+  --bg-card-hover: #161616;
+  --surface: #1a1a1a;
+  --border: #222222;
+  --text-primary: #f5f5f7;
+  --text-secondary: #a1a1a6;
+  --text-tertiary: #6e6e73;
+  --accent: #2997ff;
+  --accent-hover: #0077ed;
+  --accent-glow: rgba(41, 151, 255, 0.15);
+  --green: #30d158;
+  --purple: #bf5af2;
+  --orange: #ff9f0a;
+  --pink: #ff375f;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+  --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+a { color: var(--accent); text-decoration: none; transition: color 0.2s; }
+a:hover { color: var(--accent-hover); }
+
+/* ── Navigation ── */
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(5, 5, 5, 0.72);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: background 0.3s;
+}
+
+nav .nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+nav .logo {
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+nav .logo span { color: var(--text-tertiary); font-weight: 400; }
+
+nav .nav-links {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+}
+
+nav .nav-links a {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 400;
+  transition: color 0.2s;
+}
+
+nav .nav-links a:hover { color: var(--text-primary); }
+
+nav .nav-cta {
+  background: var(--accent);
+  color: #fff !important;
+  padding: 0.4rem 1rem;
+  border-radius: 980px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: background 0.2s, transform 0.2s;
+}
+
+nav .nav-cta:hover {
+  background: var(--accent-hover);
+  transform: scale(1.02);
+}
+
+/* ── Sections ── */
+section {
+  padding: 8rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ── Hero ── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding-top: 52px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+  pointer-events: none;
+  animation: heroGlow 8s ease-in-out infinite alternate;
+}
+
+@keyframes heroGlow {
+  0% { opacity: 0.4; transform: translateX(-50%) scale(1); }
+  100% { opacity: 0.7; transform: translateX(-50%) scale(1.2); }
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 1rem;
+  border-radius: 980px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUp 0.8s var(--ease-out) 0.2s forwards;
+}
+
+.hero-badge .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.hero h1 {
+  font-size: clamp(3rem, 8vw, 6.5rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  margin-bottom: 1.5rem;
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeUp 1s var(--ease-out) 0.4s forwards;
+}
+
+.hero h1 .gradient {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--purple) 50%, var(--pink) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero .subtitle {
+  font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+  color: var(--text-secondary);
+  max-width: 600px;
+  line-height: 1.5;
+  font-weight: 300;
+  margin-bottom: 3rem;
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeUp 1s var(--ease-out) 0.6s forwards;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeUp 1s var(--ease-out) 0.8s forwards;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 2rem;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 980px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.3s;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  color: #fff;
+  transform: scale(1.03);
+  box-shadow: 0 4px 30px rgba(41, 151, 255, 0.3);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 2rem;
+  background: transparent;
+  color: var(--accent);
+  border-radius: 980px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.btn-secondary:hover {
+  border-color: var(--accent);
+  transform: scale(1.03);
+}
+
+.hero-visual {
+  margin-top: 5rem;
+  width: 100%;
+  max-width: 900px;
+  opacity: 0;
+  transform: translateY(40px);
+  animation: fadeUp 1.2s var(--ease-out) 1s forwards;
+}
+
+.terminal-window {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 25px 80px rgba(0,0,0,0.5);
+}
+
+.terminal-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.terminal-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.terminal-dot:nth-child(1) { background: #ff5f56; }
+.terminal-dot:nth-child(2) { background: #ffbd2e; }
+.terminal-dot:nth-child(3) { background: #27c93f; }
+
+.terminal-title {
+  flex: 1;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+}
+
+.terminal-body {
+  padding: 1.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.8;
+  color: var(--text-secondary);
+}
+
+.terminal-body .prompt { color: var(--green); }
+.terminal-body .cmd { color: var(--text-primary); }
+.terminal-body .flag { color: var(--purple); }
+.terminal-body .string { color: var(--orange); }
+.terminal-body .comment { color: var(--text-tertiary); }
+.terminal-body .output { color: var(--text-tertiary); font-style: italic; }
+
+@keyframes fadeUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Reveal animation ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+
+/* ── Section headers ── */
+.section-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.section-title {
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin-bottom: 1rem;
+}
+
+.section-subtitle {
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+  max-width: 600px;
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+/* ── Features Grid ── */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 4rem;
+}
+
+.feature-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+  transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+}
+
+.feature-card:hover {
+  border-color: rgba(255,255,255,0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+}
+
+.feature-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  margin-bottom: 1.25rem;
+}
+
+.feature-icon.blue { background: rgba(41, 151, 255, 0.12); color: var(--accent); }
+.feature-icon.purple { background: rgba(191, 90, 242, 0.12); color: var(--purple); }
+.feature-icon.green { background: rgba(48, 209, 88, 0.12); color: var(--green); }
+.feature-icon.orange { background: rgba(255, 159, 10, 0.12); color: var(--orange); }
+.feature-icon.pink { background: rgba(255, 55, 95, 0.12); color: var(--pink); }
+.feature-icon.white { background: rgba(255, 255, 255, 0.08); color: var(--text-primary); }
+
+.feature-card h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.01em;
+}
+
+.feature-card p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* ── Pipeline ── */
+.pipeline-section { text-align: center; }
+
+.pipeline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-top: 4rem;
+  flex-wrap: wrap;
+}
+
+.pipeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1.25rem;
+  min-width: 140px;
+}
+
+.pipeline-step .step-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  transition: transform 0.3s var(--ease-spring), box-shadow 0.3s;
+}
+
+.pipeline-step:hover .step-icon {
+  transform: scale(1.1);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+}
+
+.pipeline-step .step-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.pipeline-step .step-desc {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+
+.pipeline-arrow {
+  font-size: 1.2rem;
+  color: var(--text-tertiary);
+  margin: 0 0.25rem;
+}
+
+/* ── Formats section ── */
+.formats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 4rem;
+}
+
+.format-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  transition: border-color 0.3s, transform 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.format-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 16px 16px 0 0;
+}
+
+.format-card.html::before { background: var(--accent); }
+.format-card.pptx::before { background: var(--orange); }
+.format-card.pdf::before { background: var(--pink); }
+
+.format-card:hover {
+  border-color: rgba(255,255,255,0.1);
+  transform: translateY(-4px);
+}
+
+.format-card .format-ext {
+  font-family: var(--font-mono);
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.format-card.html .format-ext { color: var(--accent); }
+.format-card.pptx .format-ext { color: var(--orange); }
+.format-card.pdf .format-ext { color: var(--pink); }
+
+.format-card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.format-card p {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* ── Presets ── */
+.presets-scroll {
+  margin-top: 4rem;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+}
+
+.preset-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: border-color 0.3s, transform 0.3s;
+  cursor: default;
+}
+
+.preset-chip:hover {
+  border-color: rgba(255,255,255,0.1);
+  transform: translateY(-2px);
+}
+
+.preset-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.preset-chip .preset-name {
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.preset-chip .preset-vibe {
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+  line-height: 1.3;
+}
+
+/* ── Docs section ── */
+.docs-section {
+  text-align: center;
+}
+
+.docs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-top: 4rem;
+  text-align: left;
+}
+
+.docs-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+}
+
+.docs-card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.docs-card pre {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  overflow-x: auto;
+}
+
+.docs-card pre .prompt { color: var(--green); }
+.docs-card pre .cmd { color: var(--text-primary); }
+.docs-card pre .flag { color: var(--purple); }
+.docs-card pre .string { color: var(--orange); }
+.docs-card pre .comment { color: var(--text-tertiary); }
+
+/* ── Config table ── */
+.config-table {
+  margin-top: 4rem;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.config-table th,
+.config-table td {
+  text-align: left;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.config-table th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+.config-table td {
+  font-size: 0.9rem;
+}
+
+.config-table code {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  background: var(--surface);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  color: var(--accent);
+}
+
+.config-table .default {
+  color: var(--text-tertiary);
+  font-size: 0.85rem;
+}
+
+/* ── Footer ── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+footer .footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+footer p {
+  color: var(--text-tertiary);
+  font-size: 0.8rem;
+}
+
+footer .footer-links {
+  display: flex;
+  gap: 1.5rem;
+  list-style: none;
+}
+
+footer .footer-links a {
+  color: var(--text-tertiary);
+  font-size: 0.8rem;
+}
+
+footer .footer-links a:hover {
+  color: var(--text-secondary);
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .features-grid { grid-template-columns: repeat(2, 1fr); }
+  .formats-grid { grid-template-columns: repeat(2, 1fr); }
+  .presets-scroll { grid-template-columns: repeat(2, 1fr); }
+  .docs-grid { grid-template-columns: 1fr; }
+  .pipeline { gap: 0; }
+  .pipeline-step { min-width: 110px; padding: 1rem 0.5rem; }
+}
+
+@media (max-width: 600px) {
+  section { padding: 5rem 1.25rem; }
+  .features-grid { grid-template-columns: 1fr; }
+  .formats-grid { grid-template-columns: 1fr; }
+  .presets-scroll { grid-template-columns: 1fr; }
+  nav .nav-links { display: none; }
+  .hero-actions { flex-direction: column; align-items: center; }
+  .pipeline { flex-direction: column; }
+  .pipeline-arrow { transform: rotate(90deg); }
+  footer .footer-inner { flex-direction: column; gap: 1rem; }
+}
+
+/* ── Scroll progress ── */
+.scroll-progress {
+  position: fixed;
+  top: 52px;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--purple));
+  z-index: 101;
+  width: 0%;
+  transition: width 0.1s linear;
+}
+
+/* ── Mobile menu ── */
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .nav-toggle { display: block; }
+}
+
+/* Smooth stagger for grid items */
+.stagger > * {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out);
+}
+
+.stagger.visible > *:nth-child(1) { transition-delay: 0s; }
+.stagger.visible > *:nth-child(2) { transition-delay: 0.08s; }
+.stagger.visible > *:nth-child(3) { transition-delay: 0.16s; }
+.stagger.visible > *:nth-child(4) { transition-delay: 0.24s; }
+.stagger.visible > *:nth-child(5) { transition-delay: 0.32s; }
+.stagger.visible > *:nth-child(6) { transition-delay: 0.4s; }
+.stagger.visible > *:nth-child(7) { transition-delay: 0.48s; }
+.stagger.visible > *:nth-child(8) { transition-delay: 0.56s; }
+.stagger.visible > *:nth-child(9) { transition-delay: 0.64s; }
+.stagger.visible > *:nth-child(10) { transition-delay: 0.72s; }
+
+.stagger.visible > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  .reveal, .stagger > * { opacity: 1; transform: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Scroll progress -->
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<!-- Navigation -->
+<nav>
+  <div class="nav-inner">
+    <div class="logo">Slide Builder <span>v1.0</span></div>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#pipeline">How It Works</a></li>
+      <li><a href="#formats">Formats</a></li>
+      <li><a href="#presets">Styles</a></li>
+      <li><a href="docs.html">Docs</a></li>
+    </ul>
+    <a href="docs.html" class="nav-cta">Get Started</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge">
+    <span class="dot"></span>
+    v1.0
+  </div>
+  <h1>
+    Research. Design.<br>
+    <span class="gradient">Present.</span>
+  </h1>
+  <p class="subtitle">
+    AI-powered presentation engine. Research any topic,
+    generate styled decks, export to HTML, PPTX, and PDF.
+  </p>
+  <div class="hero-actions">
+    <a href="docs.html" class="btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      Documentation
+    </a>
+    <a href="https://github.com/sameerankalgi/slide-builder-ghcp" class="btn-secondary" target="_blank" rel="noopener">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+
+  <div class="hero-visual">
+    <div class="terminal-window">
+      <div class="terminal-header">
+        <div class="terminal-dot"></div>
+        <div class="terminal-dot"></div>
+        <div class="terminal-dot"></div>
+        <span class="terminal-title">slides — research</span>
+      </div>
+      <div class="terminal-body">
+        <div><span class="prompt">$</span> <span class="cmd">slides research</span> <span class="flag">--topic</span> <span class="string">"AI in Healthcare"</span> <span class="flag">--formats</span> <span class="string">html,pptx,pdf</span></div>
+        <br>
+        <div><span class="output">▸ Researching topic via web + DuckDuckGo...</span></div>
+        <div><span class="output">▸ Curating 8 slides with narrative arc...</span></div>
+        <div><span class="output">▸ Style recommended: Bold Signal</span></div>
+        <div><span class="output">▸ Exporting HTML → ai-healthcare.html</span></div>
+        <div><span class="output">▸ Exporting PPTX → ai-healthcare.pptx</span></div>
+        <div><span class="output">▸ Exporting PDF  → ai-healthcare.pdf</span></div>
+        <br>
+        <div><span class="prompt">✓</span> <span class="cmd">Done.</span> <span class="comment">3 files generated in 12s</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features">
+  <div class="reveal">
+    <div class="section-label">Features</div>
+    <div class="section-title">Everything you need.<br>Nothing you don't.</div>
+    <p class="section-subtitle">
+      From research to final export — one command, multiple formats, ten visual themes.
+    </p>
+  </div>
+
+  <div class="features-grid stagger">
+    <div class="feature-card">
+      <div class="feature-icon blue">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <h3>AI Research</h3>
+      <p>Fetch and synthesize content from URLs, web search, PDFs, DOCX, and more. Built-in SSRF protection.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon purple">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+      </div>
+      <h3>Smart Curation</h3>
+      <p>Research is structured into a narrative arc with proper slide types, information density, and flow.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon green">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <h3>10 Style Presets</h3>
+      <p>Dark, light, and specialty themes — from cyberpunk neon to editorial notebooks. Mood-matched automatically.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon orange">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+      <h3>Multi-Format Export</h3>
+      <p>HTML (zero-dependency), PPTX (styled with speaker notes), and PDF (pixel-perfect via Playwright).</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon pink">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </div>
+      <h3>Natural Language Editing</h3>
+      <p>Edit slides after generation — "change slide 3 to a quote" or "add more data to slide 5".</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon white">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </div>
+      <h3>VS Code + CLI</h3>
+      <p>Use as an MCP server in Copilot Chat or as a standalone Go CLI with interactive TUI prompts.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Pipeline -->
+<section id="pipeline" class="pipeline-section">
+  <div class="reveal">
+    <div class="section-label">How It Works</div>
+    <div class="section-title">Five agents. One pipeline.</div>
+    <p class="section-subtitle" style="margin: 0 auto;">
+      Each agent specializes in one step, producing a polished result end to end.
+    </p>
+  </div>
+
+  <div class="pipeline reveal">
+    <div class="pipeline-step">
+      <div class="step-icon" style="border-color: rgba(41,151,255,0.3);">🔍</div>
+      <div class="step-label">Research</div>
+      <div class="step-desc">URLs, web, files</div>
+    </div>
+    <div class="pipeline-arrow">→</div>
+    <div class="pipeline-step">
+      <div class="step-icon" style="border-color: rgba(191,90,242,0.3);">📋</div>
+      <div class="step-label">Curate</div>
+      <div class="step-desc">Structure narrative</div>
+    </div>
+    <div class="pipeline-arrow">→</div>
+    <div class="pipeline-step">
+      <div class="step-icon" style="border-color: rgba(255,159,10,0.3);">🎨</div>
+      <div class="step-label">Style</div>
+      <div class="step-desc">Match theme</div>
+    </div>
+    <div class="pipeline-arrow">→</div>
+    <div class="pipeline-step">
+      <div class="step-icon" style="border-color: rgba(48,209,88,0.3);">📦</div>
+      <div class="step-label">Export</div>
+      <div class="step-desc">HTML / PPTX / PDF</div>
+    </div>
+    <div class="pipeline-arrow">→</div>
+    <div class="pipeline-step">
+      <div class="step-icon" style="border-color: rgba(255,55,95,0.3);">✏️</div>
+      <div class="step-label">Edit</div>
+      <div class="step-desc">Refine with NL</div>
+    </div>
+  </div>
+</section>
+
+<!-- Formats -->
+<section id="formats">
+  <div class="reveal" style="text-align: center;">
+    <div class="section-label">Output</div>
+    <div class="section-title">Three formats. One command.</div>
+    <p class="section-subtitle" style="margin: 0 auto;">
+      Generate all three at once, or pick just what you need.
+    </p>
+  </div>
+
+  <div class="formats-grid stagger">
+    <div class="format-card html">
+      <div class="format-ext">.html</div>
+      <h3>Self-Contained HTML</h3>
+      <p>Single file. Zero dependencies. Keyboard, touch, and swipe navigation with scroll-triggered animations. Respects reduced motion.</p>
+    </div>
+    <div class="format-card pptx">
+      <div class="format-ext">.pptx</div>
+      <h3>PowerPoint</h3>
+      <p>Styled slides with preset colors and fonts. Speaker notes included. Apply branding from existing PPTX templates.</p>
+    </div>
+    <div class="format-card pdf">
+      <div class="format-ext">.pdf</div>
+      <h3>PDF</h3>
+      <p>Pixel-perfect render via Playwright (Chromium). One page per slide, print-ready quality.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Style Presets -->
+<section id="presets">
+  <div class="reveal" style="text-align: center;">
+    <div class="section-label">Themes</div>
+    <div class="section-title">10 presets. Automatically matched.</div>
+    <p class="section-subtitle" style="margin: 0 auto;">
+      The Style Recommender analyzes your content and picks the best visual fit.
+    </p>
+  </div>
+
+  <div class="presets-scroll stagger">
+    <div class="preset-chip">
+      <div class="preset-swatch" style="background: linear-gradient(135deg, #1a1a2e, #e94560);"></div>
+      <div>
+        <div class="preset-name">Bold Signal</div>
+        <div class="preset-vibe">Confident, high-impact</div>
+      </div>
+    </div>
+    <div class="preset-chip">
+      <div class="preset-swatch" style="background: linear-gradient(135deg, #0d0d0d, #4a90d9);"></div>
+      <div>
+        <div class="preset-name">Electric Studio</div>
+        <div class="preset-vibe">Sleek, minimal</div>
+      </div>
+    </div>
+    <div class="preset-chip">
+      <div class="preset-swatch" style="background: linear-gradient(135deg, #2d1b69, #ff6b6b);"></div>
+      <div>
+        <div class="preset-name">Creative Voltage</div>
+        <div class="preset-vibe">Energetic, retro</div>
+      </div>
+    </div>
+    <div class="preset-chip">
+      <div class="preset-swatch" style="background: linear-gradient(135deg, #1a2e1a, #4a7c59);"></div>
+      <div>
+        <div class="preset-name">Dark Botanical</div>
+        <div class="preset-vibe">Elegant, artistic</div>
+      </div>
+    </div>
+    <div class="preset-chip">
+      <div class="preset-swatch" style="background: linear-gradient(135deg, #f5f0e8, #d4a574);"></div>
+      <div>
+        <div class="preset-name">Notebook Tabs</div>
+        <div class="preset-vibe">Editorial, structured</div>
+      </div>
+    </div>
+    <div class="preset-chip">
+      <div class="preset-swatch" style="background: linear-gradient(135deg, #fce4ec, #90caf9);"></div>
+      <div>
+        <div class="preset-name">Pastel Geometry</div>
+        <div class="preset-vibe">Friendly, modern</div>
+      </div>
+    </div>
+    <div class="preset-chip">
+      <div class="preset-swatch" style="background: linear-gradient(135deg, #f8bbd9, #b2ebf2);"></div>
+      <div>
+        <div class="preset-name">Split Pastel</div>
+        <div class="preset-vibe">Clean, playful</div>
+      </div>
+    </div>
+    <div class="preset-chip">
+      <div class="preset-swatch" style="background: linear-gradient(135deg, #faf3e0, #d4a574);"></div>
+      <div>
+        <div class="preset-name">Vintage Editorial</div>
+        <div class="preset-vibe">Witty, personality</div>
+      </div>
+    </div>
+    <div class="preset-chip">
+      <div class="preset-swatch" style="background: linear-gradient(135deg, #0a0a2e, #00ffff);"></div>
+      <div>
+        <div class="preset-name">Neon Cyber</div>
+        <div class="preset-vibe">Futuristic, cyberpunk</div>
+      </div>
+    </div>
+    <div class="preset-chip">
+      <div class="preset-swatch" style="background: linear-gradient(135deg, #0a0a0a, #00ff41);"></div>
+      <div>
+        <div class="preset-name">Terminal Green</div>
+        <div class="preset-vibe">Developer, retro</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Get Started -->
+<section id="docs" class="docs-section">
+  <div class="reveal">
+    <div class="section-label">Get Started</div>
+    <div class="section-title">Up and running in minutes.</div>
+    <p class="section-subtitle" style="margin: 0 auto;">
+      Choose your interface — VS Code Copilot, Go CLI, or Docker.
+    </p>
+  </div>
+
+  <div class="docs-grid stagger">
+    <div class="docs-card">
+      <h3>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        VS Code Copilot
+      </h3>
+      <pre><span class="prompt">$</span> <span class="cmd">pip install</span> <span class="flag">-e</span> <span class="string">".[all]"</span>
+
+<span class="comment"># Open project in VS Code</span>
+<span class="comment"># MCP server auto-registers</span>
+<span class="comment"># Use in Copilot Chat:</span>
+
+<span class="string">@slide-builder</span> <span class="cmd">Create a presentation
+about renewable energy</span></pre>
+    </div>
+    <div class="docs-card">
+      <h3>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+        Go CLI
+      </h3>
+      <pre><span class="prompt">$</span> <span class="cmd">go build</span> <span class="flag">-o</span> <span class="string">bin/slides</span> <span class="cmd">./cmd/slides</span>
+
+<span class="prompt">$</span> <span class="cmd">./bin/slides research</span> \
+    <span class="flag">--topic</span> <span class="string">"AI in Healthcare"</span> \
+    <span class="flag">--formats</span> <span class="string">html,pptx,pdf</span>
+
+<span class="prompt">$</span> <span class="cmd">./bin/slides edit</span> <span class="comment"># interactive</span></pre>
+    </div>
+    <div class="docs-card">
+      <h3>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        Docker
+      </h3>
+      <pre><span class="prompt">$</span> <span class="cmd">docker build</span> <span class="flag">-t</span> <span class="string">slide-builder</span> <span class="cmd">.</span>
+
+<span class="prompt">$</span> <span class="cmd">docker run</span> \
+    <span class="flag">-e</span> <span class="string">GITHUB_TOKEN="$GITHUB_TOKEN"</span> \
+    <span class="string">slide-builder</span></pre>
+    </div>
+    <div class="docs-card">
+      <h3>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Configuration
+      </h3>
+      <pre><span class="comment"># Required (pick one):</span>
+<span class="flag">GITHUB_TOKEN</span>=<span class="string">ghp_...</span>
+<span class="flag">OPENAI_API_KEY</span>=<span class="string">sk-...</span>
+
+<span class="comment"># Optional:</span>
+<span class="flag">SLIDE_LLM_MODEL</span>=<span class="string">gpt-4o</span>
+<span class="flag">SLIDE_LLM_PROVIDER</span>=<span class="string">copilot</span>
+<span class="flag">SLIDE_LLM_TIMEOUT</span>=<span class="string">60</span></pre>
+    </div>
+  </div>
+
+  <div style="text-align: center; margin-top: 3rem;" class="reveal">
+    <a href="docs.html" class="btn-primary" style="font-size: 1rem; padding: 1rem 2.5rem;">
+      Full Documentation →
+    </a>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-inner">
+    <p>Slide Builder v1.0 — MIT License</p>
+    <ul class="footer-links">
+      <li><a href="https://github.com/sameerankalgi/slide-builder-ghcp" target="_blank" rel="noopener">GitHub</a></li>
+      <li><a href="docs.html">Docs</a></li>
+      <li><a href="docs.html#mcp-tools">MCP Tools</a></li>
+    </ul>
+  </div>
+</footer>
+
+<script>
+// Scroll progress bar
+const scrollProgress = document.getElementById('scrollProgress');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  scrollProgress.style.width = pct + '%';
+}, { passive: true });
+
+// Intersection Observer for reveal & stagger animations
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
+
+document.querySelectorAll('.reveal, .stagger').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
