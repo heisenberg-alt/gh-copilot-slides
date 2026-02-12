@@ -22,7 +22,7 @@ build/
 venv/
 
 # IDE
-.vscode/settings.json
+.vscode/
 .idea/
 *.swp
 *.swo
