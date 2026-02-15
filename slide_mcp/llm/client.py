@@ -1,11 +1,14 @@
 """
-Configurable LLM client — GitHub Copilot API and OpenAI backends.
+Configurable LLM client — GitHub Copilot API, OpenAI, and Azure OpenAI backends.
 
 Environment variables:
-  SLIDE_LLM_PROVIDER  — "copilot" or "openai" (auto-detected if unset)
-  GITHUB_TOKEN        — Token for GitHub Copilot API
-  OPENAI_API_KEY      — Token for OpenAI API
-  SLIDE_LLM_MODEL     — Override model name (default: gpt-5.2)
+  SLIDE_LLM_PROVIDER      — "copilot", "openai", or "azure" (auto-detected if unset)
+  GITHUB_TOKEN            — Token for GitHub Copilot API
+  OPENAI_API_KEY          — Token for OpenAI API
+  AZURE_OPENAI_ENDPOINT   — Azure OpenAI endpoint URL
+  AZURE_OPENAI_KEY        — Azure OpenAI API key
+  AZURE_OPENAI_DEPLOYMENT — Azure OpenAI deployment name (default: gpt-4o)
+  SLIDE_LLM_MODEL         — Override model name (default: gpt-5.2)
 """
 
 from __future__ import annotations
@@ -180,6 +183,83 @@ class OpenAIClient(LLMClient):
             pass
 
 
+class AzureOpenAIClient(LLMClient):
+    """Azure OpenAI Service client.
+
+    Uses the Azure-specific API format with deployment names.
+
+    Environment variables:
+      AZURE_OPENAI_ENDPOINT   — Azure OpenAI endpoint (e.g., https://my-resource.openai.azure.com)
+      AZURE_OPENAI_KEY        — Azure OpenAI API key
+      AZURE_OPENAI_DEPLOYMENT — Deployment name (default: gpt-4o)
+      AZURE_OPENAI_API_VERSION — API version (default: 2024-02-01)
+    """
+
+    def __init__(
+        self,
+        endpoint: str | None = None,
+        api_key: str | None = None,
+        deployment: str | None = None,
+        api_version: str | None = None,
+        timeout: int | None = None,
+    ):
+        self.endpoint = (endpoint or os.getenv("AZURE_OPENAI_ENDPOINT", "")).rstrip("/")
+        self.api_key = api_key or os.getenv("AZURE_OPENAI_KEY", "")
+        self.deployment = deployment or os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-4o")
+        self.api_version = api_version or os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-01")
+        self._timeout = timeout or int(os.getenv("SLIDE_LLM_TIMEOUT", str(DEFAULT_TIMEOUT)))
+
+        if not self.endpoint:
+            raise ValueError("AZURE_OPENAI_ENDPOINT environment variable is required")
+        if not self.api_key:
+            raise ValueError("AZURE_OPENAI_KEY environment variable is required")
+
+        self._client = httpx.Client(
+            timeout=self._timeout,
+            headers=self._headers(),
+        )
+
+    def _headers(self) -> dict[str, str]:
+        return {
+            "Content-Type": "application/json",
+            "api-key": self.api_key,
+        }
+
+    def _get_url(self) -> str:
+        """Construct the Azure OpenAI chat completions URL."""
+        return (
+            f"{self.endpoint}/openai/deployments/{self.deployment}"
+            f"/chat/completions?api-version={self.api_version}"
+        )
+
+    def chat(self, messages: list[Message], temperature: float = 0.7) -> str:
+        payload = {
+            "messages": [m.to_dict() for m in messages],
+            "temperature": temperature,
+        }
+        resp = self._client.post(self._get_url(), json=payload)
+        resp.raise_for_status()
+        data = resp.json()
+
+        if not data.get("choices"):
+            raise RuntimeError("No choices in Azure OpenAI response")
+        return data["choices"][0]["message"]["content"]
+
+    def chat_json(self, messages: list[Message], temperature: float = 0.3) -> dict[str, Any]:
+        raw = self.chat(messages, temperature=temperature)
+        return _parse_json_response(raw)
+
+    def close(self) -> None:
+        """Close the underlying HTTP client."""
+        self._client.close()
+
+    def __del__(self) -> None:
+        try:
+            self._client.close()
+        except Exception:
+            pass
+
+
 def _parse_json_response(raw: str) -> dict[str, Any]:
     """Parse JSON from an LLM response, stripping markdown fences if present."""
     cleaned = raw.strip()
@@ -209,9 +289,9 @@ def get_client(provider: str | None = None) -> LLMClient:
     Create an LLM client based on configuration.
 
     Resolution order:
-    1. Explicit `provider` argument ("copilot" or "openai")
+    1. Explicit `provider` argument ("copilot", "openai", or "azure")
     2. SLIDE_LLM_PROVIDER environment variable
-    3. Auto-detect: GITHUB_TOKEN → Copilot, OPENAI_API_KEY → OpenAI
+    3. Auto-detect: AZURE_OPENAI_ENDPOINT → Azure, GITHUB_TOKEN → Copilot, OPENAI_API_KEY → OpenAI
     """
     provider = provider or os.getenv("SLIDE_LLM_PROVIDER", "").lower()
 
@@ -219,8 +299,13 @@ def get_client(provider: str | None = None) -> LLMClient:
         return CopilotClient()
     if provider == "openai":
         return OpenAIClient()
+    if provider == "azure":
+        return AzureOpenAIClient()
 
-    # Auto-detect
+    # Auto-detect (Azure first, as it's the preferred provider for v2)
+    if os.getenv("AZURE_OPENAI_ENDPOINT") and os.getenv("AZURE_OPENAI_KEY"):
+        logger.info("Auto-detected Azure OpenAI credentials, using Azure client")
+        return AzureOpenAIClient()
     if os.getenv("GITHUB_TOKEN"):
         logger.info("Auto-detected GitHub token, using Copilot client")
         return CopilotClient()
@@ -229,6 +314,7 @@ def get_client(provider: str | None = None) -> LLMClient:
         return OpenAIClient()
 
     raise RuntimeError(
-        "No LLM provider configured. Set GITHUB_TOKEN (for Copilot) "
-        "or OPENAI_API_KEY (for OpenAI), or set SLIDE_LLM_PROVIDER explicitly."
+        "No LLM provider configured. Set AZURE_OPENAI_ENDPOINT + AZURE_OPENAI_KEY (for Azure), "
+        "GITHUB_TOKEN (for Copilot), or OPENAI_API_KEY (for OpenAI), "
+        "or set SLIDE_LLM_PROVIDER explicitly."
     )

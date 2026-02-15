@@ -19,6 +19,7 @@ build/
 .eggs/
 *.egg
 .venv/
+.venv-v2/
 venv/
 
 # IDE
@@ -41,3 +42,13 @@ test-output/
 # OS
 .DS_Store
 Thumbs.db
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Node.js
+node_modules/
+.next/
+.pnpm-store/

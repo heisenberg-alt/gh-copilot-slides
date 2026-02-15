@@ -1,0 +1,72 @@
+name: Deploy Infrastructure
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'infra/**'
+      - '.github/workflows/deploy-infra.yml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'prod'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Validate Bicep
+        run: |
+          az bicep build --file infra/main.bicep
+          az deployment sub validate \
+            --location eastus2 \
+            --template-file infra/main.bicep \
+            --parameters environment=${{ inputs.environment || 'prod' }} \
+                         tenantId=${{ secrets.AZURE_TENANT_ID }} \
+                         clientId=${{ secrets.AZURE_CLIENT_ID }}
+
+  deploy:
+    needs: validate
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'prod' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy Infrastructure
+        run: |
+          az deployment sub create \
+            --location eastus2 \
+            --template-file infra/main.bicep \
+            --parameters environment=${{ inputs.environment || 'prod' }} \
+                         tenantId=${{ secrets.AZURE_TENANT_ID }} \
+                         clientId=${{ secrets.AZURE_CLIENT_ID }} \
+            --name slide-builder-${{ github.run_number }}
+
+      - name: Output deployment info
+        run: |
+          echo "Deployment completed successfully!"
+          az deployment sub show \
+            --name slide-builder-${{ github.run_number }} \
+            --query properties.outputs
