@@ -38,7 +38,7 @@ export default function PresentationDetailPage() {
         <p className="text-text-secondary mb-6">
           The presentation you&apos;re looking for doesn&apos;t exist or has been deleted.
         </p>
-        <Link href="/" className="btn btn-primary">
+        <Link href="/dashboard" className="btn btn-primary">
           Back to Dashboard
         </Link>
       </div>
@@ -56,7 +56,7 @@ export default function PresentationDetailPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Link href="/" className="btn btn-ghost p-2">
+          <Link href="/dashboard" className="btn btn-ghost p-2">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>

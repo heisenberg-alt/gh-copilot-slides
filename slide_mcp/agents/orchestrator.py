@@ -100,8 +100,13 @@ class Orchestrator:
         research_result = self.researcher.run(context)
         if not research_result.success:
             logger.warning(f"[orchestrator] Research failed: {research_result.error}")
-            # Continue with empty research — curator will use LLM knowledge
-            context.research_data = {}
+            # Continue with minimal research — curator will use LLM knowledge
+            context.research_data = {
+                "topic": topic,
+                "summary": f"Create a presentation about: {topic}",
+                "key_points": [],
+                "sources": [],
+            }
         else:
             context.research_data = research_result.data
             session.research_data = research_result.data

@@ -30,7 +30,7 @@ COPY --from=go-builder /slides /usr/local/bin/slides
 # Copy Python packages
 COPY slide_mcp/ ./slide_mcp/
 COPY templates/ ./templates/
-COPY pyproject.toml ./
+COPY pyproject.toml README.md ./
 
 # Copy API package
 COPY apps/api/ ./apps/api/

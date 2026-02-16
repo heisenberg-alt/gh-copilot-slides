@@ -187,10 +187,11 @@ class AzureOpenAIClient(LLMClient):
     """Azure OpenAI Service client.
 
     Uses the Azure-specific API format with deployment names.
+    Supports both API key auth and Entra ID managed identity auth.
 
     Environment variables:
       AZURE_OPENAI_ENDPOINT   — Azure OpenAI endpoint (e.g., https://my-resource.openai.azure.com)
-      AZURE_OPENAI_KEY        — Azure OpenAI API key
+      AZURE_OPENAI_KEY        — Azure OpenAI API key (optional; if not set, uses managed identity)
       AZURE_OPENAI_DEPLOYMENT — Deployment name (default: gpt-4o)
       AZURE_OPENAI_API_VERSION — API version (default: 2024-02-01)
     """
@@ -208,22 +209,50 @@ class AzureOpenAIClient(LLMClient):
         self.deployment = deployment or os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-4o")
         self.api_version = api_version or os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-01")
         self._timeout = timeout or int(os.getenv("SLIDE_LLM_TIMEOUT", str(DEFAULT_TIMEOUT)))
+        self._credential = None
+        self._token_cache: dict[str, Any] = {}
 
         if not self.endpoint:
             raise ValueError("AZURE_OPENAI_ENDPOINT environment variable is required")
+
         if not self.api_key:
-            raise ValueError("AZURE_OPENAI_KEY environment variable is required")
+            # Use managed identity (Container Apps & App Service)
+            try:
+                from azure.identity import ManagedIdentityCredential
+                # Use system-assigned managed identity
+                self._credential = ManagedIdentityCredential()
+                logger.info("Using managed identity auth for Azure OpenAI")
+            except ImportError:
+                raise ValueError(
+                    "azure-identity package is required for managed identity auth. "
+                    "Install it with: pip install azure-identity"
+                )
+        else:
+            logger.info("Using API key auth for Azure OpenAI")
 
-        self._client = httpx.Client(
-            timeout=self._timeout,
-            headers=self._headers(),
-        )
+        self._client = httpx.Client(timeout=self._timeout)
 
-    def _headers(self) -> dict[str, str]:
-        return {
-            "Content-Type": "application/json",
-            "api-key": self.api_key,
-        }
+    def _get_auth_headers(self) -> dict[str, str]:
+        """Get authentication headers, using either API key or managed identity token."""
+        headers = {"Content-Type": "application/json"}
+
+        if self.api_key:
+            headers["api-key"] = self.api_key
+        elif self._credential:
+            import time
+            # Cache token until 5 minutes before expiry
+            cached = self._token_cache.get("token")
+            if cached and cached["expires_on"] > time.time() + 300:
+                headers["Authorization"] = f"Bearer {cached['access_token']}"
+            else:
+                token = self._credential.get_token("https://cognitiveservices.azure.com/.default")
+                self._token_cache["token"] = {
+                    "access_token": token.token,
+                    "expires_on": token.expires_on,
+                }
+                headers["Authorization"] = f"Bearer {token.token}"
+
+        return headers
 
     def _get_url(self) -> str:
         """Construct the Azure OpenAI chat completions URL."""
@@ -237,7 +266,9 @@ class AzureOpenAIClient(LLMClient):
             "messages": [m.to_dict() for m in messages],
             "temperature": temperature,
         }
-        resp = self._client.post(self._get_url(), json=payload)
+        resp = self._client.post(
+            self._get_url(), json=payload, headers=self._get_auth_headers()
+        )
         resp.raise_for_status()
         data = resp.json()
 

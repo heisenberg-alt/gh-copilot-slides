@@ -36,6 +36,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       // Use type assertion with proper typing
       session.accessToken = token.accessToken;
+      session.idToken = token.idToken;
       session.user.roles = token.roles || [];
       session.user.id = token.sub || '';
       return session;

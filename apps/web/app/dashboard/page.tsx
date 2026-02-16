@@ -47,7 +47,7 @@ export default function DashboardPage() {
             Create, manage, and export your AI-generated presentations
           </p>
         </div>
-        <Link href="/new" className="btn btn-primary">
+        <Link href="/dashboard/new" className="btn btn-primary">
           <Plus className="w-4 h-4" aria-hidden="true" />
           New Presentation
         </Link>
@@ -106,7 +106,7 @@ export default function DashboardPage() {
           <p className="text-text-secondary mb-6 max-w-md mx-auto">
             Create your first AI-powered presentation by describing your topic.
           </p>
-          <Link href="/new" className="btn btn-primary">
+          <Link href="/dashboard/new" className="btn btn-primary">
             <Plus className="w-4 h-4" aria-hidden="true" />
             Create Presentation
           </Link>

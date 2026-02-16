@@ -83,6 +83,9 @@ module keyVault 'modules/keyvault.bicep' = {
 module monitoring 'modules/monitoring.bicep' = {
   name: 'monitoring'
   scope: rg
+  dependsOn: [
+    containerApps
+  ]
   params: {
     location: location
     environment: environment

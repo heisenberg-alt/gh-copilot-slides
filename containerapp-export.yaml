@@ -1,0 +1,106 @@
+id: /subscriptions/e8da3f1f-d5ec-4a6e-8cca-5cbef3e557db/resourceGroups/rg-slide-builder-prod/providers/Microsoft.App/containerapps/ca-slide-builder-api-prod
+identity:
+  principalId: b69d3f6c-d2d2-4014-ab1a-b74726cf2a0b
+  tenantId: 22160f2d-f7a0-4f0f-b25e-ce5b8f2b98ab
+  type: SystemAssigned
+location: East US 2
+name: ca-slide-builder-api-prod
+properties:
+  configuration:
+    activeRevisionsMode: Single
+    dapr: null
+    ingress:
+      additionalPortMappings: null
+      allowInsecure: false
+      clientCertificateMode: null
+      corsPolicy:
+        allowCredentials: true
+        allowedHeaders:
+        - '*'
+        allowedMethods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+        allowedOrigins:
+        - https://*.azurestaticapps.net
+        - http://localhost:3000
+        exposeHeaders: null
+        maxAge: null
+      customDomains: null
+      exposedPort: 0
+      external: true
+      fqdn: ca-slide-builder-api-prod.orangeflower-f94e311f.eastus2.azurecontainerapps.io
+      ipSecurityRestrictions: null
+      stickySessions: null
+      targetPort: 8000
+      traffic:
+      - latestRevision: true
+        weight: 100
+      transport: Http
+    maxInactiveRevisions: null
+    registries: null
+    secrets:
+    - identity: system
+      keyVaultUrl: https://kv-slidebuilder-prod.vault.azure.net/secrets/azure-openai-key
+      name: azure-openai-key
+    - identity: system
+      keyVaultUrl: https://kv-slidebuilder-prod.vault.azure.net/secrets/storage-connection-string
+      name: storage-connection-string
+    service: null
+  customDomainVerificationId: 0C5DABD722EB1F83843290595063F291CFFD5C5AAB793A2FE7B3779349C144B5
+  delegatedIdentities: []
+  environmentId: /subscriptions/e8da3f1f-d5ec-4a6e-8cca-5cbef3e557db/resourceGroups/rg-slide-builder-prod/providers/Microsoft.App/managedEnvironments/cae-slide-builder-prod
+  eventStreamEndpoint: https://eastus2.azurecontainerapps.dev/subscriptions/e8da3f1f-d5ec-4a6e-8cca-5cbef3e557db/resourceGroups/rg-slide-builder-prod/containerApps/ca-slide-builder-api-prod/eventstream
+  latestReadyRevisionName: ca-slide-builder-api-prod--m1e2bg8
+  latestRevisionFqdn: ca-slide-builder-api-prod--m1e2bg8.orangeflower-f94e311f.eastus2.azurecontainerapps.io
+  latestRevisionName: ca-slide-builder-api-prod--m1e2bg8
+  managedEnvironmentId: /subscriptions/e8da3f1f-d5ec-4a6e-8cca-5cbef3e557db/resourceGroups/rg-slide-builder-prod/providers/Microsoft.App/managedEnvironments/cae-slide-builder-prod
+  outboundIpAddresses:
+  - 20.62.73.21
+  provisioningState: Failed
+  runningStatus: Running
+  template:
+    containers:
+    - env:
+      - name: AZURE_OPENAI_ENDPOINT
+        value: https://oai-slide-builder-prod.openai.azure.com/
+      - name: AZURE_OPENAI_KEY
+        secretRef: azure-openai-key
+      - name: AZURE_STORAGE_CONNECTION_STRING
+        secretRef: storage-connection-string
+      - name: SLIDE_LLM_PROVIDER
+        value: azure
+      image: mcr.microsoft.com/azuredocs/containerapps-helloworld:latest
+      name: api
+      resources:
+        cpu: 0.5
+        ephemeralStorage: 2Gi
+        memory: 1Gi
+    initContainers: null
+    revisionSuffix: ''
+    scale:
+      maxReplicas: 5
+      minReplicas: 0
+      rules:
+      - http:
+          metadata:
+            concurrentRequests: '50'
+        name: http-scale
+    serviceBinds: null
+    terminationGracePeriodSeconds: null
+    volumes: null
+  workloadProfileName: null
+resourceGroup: rg-slide-builder-prod
+systemData:
+  createdAt: '2026-02-15T23:24:51.2328196'
+  createdBy: admin@MngEnvMCAP420287.onmicrosoft.com
+  createdByType: User
+  lastModifiedAt: '2026-02-15T23:44:10.641146'
+  lastModifiedBy: admin@MngEnvMCAP420287.onmicrosoft.com
+  lastModifiedByType: User
+tags:
+  application: slide-builder
+  environment: prod
+type: Microsoft.App/containerApps

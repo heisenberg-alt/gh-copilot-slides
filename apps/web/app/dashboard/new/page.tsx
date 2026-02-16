@@ -20,7 +20,7 @@ export default function NewPresentationPage() {
   const handleComplete = () => {
     setStep('complete');
     if (sessionId) {
-      router.push(`/presentations/${sessionId}`);
+      router.push(`/dashboard/presentations/${sessionId}`);
     }
   };
 
@@ -28,7 +28,7 @@ export default function NewPresentationPage() {
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Link href="/" className="btn btn-ghost p-2">
+        <Link href="/dashboard" className="btn btn-ghost p-2">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>

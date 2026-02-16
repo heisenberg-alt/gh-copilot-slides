@@ -7,8 +7,8 @@ import { useState } from 'react';
 import { cn } from '@/lib/cn';
 
 const navItems = [
-  { href: '/', icon: Home, label: 'Dashboard' },
-  { href: '/new', icon: Plus, label: 'New Presentation' },
+  { href: '/dashboard', icon: Home, label: 'Dashboard' },
+  { href: '/dashboard/new', icon: Plus, label: 'New Presentation' },
   { href: '/settings', icon: Settings, label: 'Settings' },
 ];
 

@@ -22,7 +22,7 @@ export default function SignInContent() {
 
   useEffect(() => {
     if (session) {
-      router.push('/');
+      router.push('/dashboard');
     }
   }, [session, router]);
 
@@ -30,7 +30,7 @@ export default function SignInContent() {
     setIsLoading(true);
     setError(null);
     try {
-      await signIn('azure-ad', { callbackUrl: '/' });
+      await signIn('azure-ad', { callbackUrl: '/dashboard' });
     } catch {
       setError('Failed to initiate sign in. Please try again.');
       setIsLoading(false);

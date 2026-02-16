@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getSession } from 'next-auth/react';
 
 const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || '',
@@ -7,8 +8,10 @@ const apiClient = axios.create({
 
 // Add auth token to requests
 apiClient.interceptors.request.use(async (config) => {
-  // In production, get token from NextAuth session
-  // For now, we'll let the cookies handle auth
+  const session = await getSession();
+  if (session?.idToken) {
+    config.headers.Authorization = `Bearer ${session.idToken}`;
+  }
   return config;
 });
 

@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { Check, Loader2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { getSession } from 'next-auth/react';
+import { api } from '@/lib/api';
 
 interface ProgressViewProps {
   sessionId: string;
@@ -31,60 +33,97 @@ export function ProgressView({ sessionId, onComplete }: ProgressViewProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-    const eventSource = new EventSource(
-      `${apiUrl}/api/v1/presentations/${sessionId}/stream`,
-      { withCredentials: true }
-    );
-
-    eventSource.addEventListener('progress', (event) => {
-      const data: ProgressEvent = JSON.parse(event.data);
-      setCurrentStage(data.stage);
-      setMessage(data.message);
-      setProgress(data.progress);
-
-      if (data.stage === 'completed') {
-        eventSource.close();
-        setTimeout(onComplete, 1500);
-      }
-
-      if (data.stage === 'error') {
-        setError(data.message);
-        eventSource.close();
-      }
-    });
-
-    eventSource.onerror = () => {
-      // Try polling fallback
-      eventSource.close();
-      pollProgress();
-    };
+    let cancelled = false;
 
     const pollProgress = async () => {
+      if (cancelled) return;
       try {
-        const response = await fetch(
-          `${apiUrl}/api/v1/presentations/${sessionId}`
-        );
-        const data = await response.json();
+        const data = await api.getPresentation(sessionId);
 
+        if (cancelled) return;
         setCurrentStage(data.stage || 'processing');
         setProgress(data.progress || 50);
 
         if (data.status === 'completed') {
           onComplete();
         } else if (data.status === 'error') {
-          setError(data.error);
+          setError(data.error || 'Unknown error');
         } else {
           setTimeout(pollProgress, 2000);
         }
       } catch {
-        // Retry on error with backoff
-        setTimeout(pollProgress, 3000);
+        if (!cancelled) {
+          // Retry on error with backoff
+          setTimeout(pollProgress, 3000);
+        }
       }
     };
 
+    const startStreaming = async () => {
+      const session = await getSession();
+      const token = session?.idToken;
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+
+      try {
+        const response = await fetch(
+          `${apiUrl}/api/v1/presentations/${sessionId}/stream`,
+          {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          }
+        );
+
+        if (!response.ok || !response.body) {
+          // Fall back to polling
+          pollProgress();
+          return;
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (!cancelled) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            if (line.startsWith('data:')) {
+              try {
+                const data: ProgressEvent = JSON.parse(line.slice(5).trim());
+                setCurrentStage(data.stage);
+                setMessage(data.message);
+                setProgress(data.progress);
+
+                if (data.stage === 'completed') {
+                  setTimeout(onComplete, 1500);
+                  return;
+                }
+                if (data.stage === 'error') {
+                  setError(data.message);
+                  return;
+                }
+              } catch {
+                // Skip malformed JSON
+              }
+            }
+          }
+        }
+      } catch {
+        // Fall back to polling on any error
+        if (!cancelled) {
+          pollProgress();
+        }
+      }
+    };
+
+    startStreaming();
+
     return () => {
-      eventSource.close();
+      cancelled = true;
     };
   }, [sessionId, onComplete]);
 
