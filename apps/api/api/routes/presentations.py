@@ -117,6 +117,38 @@ async def create_presentation(
     )
 
 
+class PresentationListResponse(BaseModel):
+    """Response for listing presentations."""
+
+    presentations: list[PresentationStatus]
+
+
+@router.get("", response_model=PresentationListResponse)
+async def list_presentations(
+    user: User = Depends(get_current_user),
+):
+    """List all presentations for the current user."""
+    user_presentations = [
+        PresentationStatus(
+            session_id=pres["session_id"],
+            status=pres["status"],
+            stage=pres.get("stage"),
+            progress=pres.get("progress"),
+            title=pres.get("title"),
+            slide_count=pres.get("slide_count"),
+            output_urls=pres.get("output_urls"),
+            error=pres.get("error"),
+            created_at=pres["created_at"],
+            updated_at=pres["updated_at"],
+        )
+        for pres in _presentations.values()
+        if pres["user_id"] == user.id or "Admin" in user.roles
+    ]
+    # Sort by created_at descending
+    user_presentations.sort(key=lambda p: p.created_at, reverse=True)
+    return PresentationListResponse(presentations=user_presentations)
+
+
 @router.get("/{session_id}", response_model=PresentationStatus)
 async def get_presentation(
     session_id: str,

@@ -3,31 +3,15 @@
 import Link from 'next/link';
 import { Plus, FileText, Clock, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-
-// Note: This would fetch from API when the list endpoint is available
-// For now, we show empty state as presentations are stored in-memory on backend
-async function fetchPresentations() {
-  // TODO: Implement when backend has GET /api/v1/presentations endpoint
-  // const response = await fetch('/api/v1/presentations');
-  // return response.json();
-  return { presentations: [] };
-}
-
-interface Presentation {
-  session_id: string;
-  title: string;
-  created_at: string;
-  status: string;
-  slide_count?: number;
-}
+import { api, PresentationStatus } from '@/lib/api';
 
 export default function DashboardPage() {
   const { data, isLoading } = useQuery({
     queryKey: ['presentations'],
-    queryFn: fetchPresentations,
+    queryFn: api.listPresentations,
   });
 
-  const presentations: Presentation[] = data?.presentations || [];
+  const presentations: PresentationStatus[] = data?.presentations || [];
 
   if (isLoading) {
     return (

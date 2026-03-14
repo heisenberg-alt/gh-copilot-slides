@@ -61,6 +61,11 @@ export interface UploadUrlResponse {
 
 export const api = {
   // Presentations
+  listPresentations: async (): Promise<{ presentations: PresentationStatus[] }> => {
+    const response = await apiClient.get('/api/v1/presentations');
+    return response.data;
+  },
+
   createPresentation: async (
     data: CreatePresentationRequest
   ): Promise<PresentationStatus> => {
